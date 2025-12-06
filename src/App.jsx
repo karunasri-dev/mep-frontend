@@ -5,8 +5,16 @@ import Navigation from "./components/Navigation";
 import DashboardPage from "./pages/DashboardPage";
 import TeamsPage from "./pages/TeamsPage";
 import BullsPage from "./pages/BullsPage";
-import RegisterPage from "./pages/RegisterPage";
-import LoginPage from "./pages/LoginPage";
+import Choice from "./pages/auth/Choice";
+import Login from "./pages/auth/Login";
+import Register from "./pages/auth/Register";
+import Otp from "./pages/auth/Otp";
+import Success from "./pages/auth/Success";
+import HomePage from "./Pages/HomePage";
+import HomePage2 from "./Pages/HomePage2";
+import HomePage3 from "./Pages/HomePage3";
+import HomePage4 from "./Pages/HomePage4";
+
 // import GenericPage from "./pages/GenericPage";
 // import ParallaxPage from "./Pages/ParallaxPage";
 
@@ -34,12 +42,38 @@ const AppContent = () => {
   }, []);
 
   const hideNavbarFooter =
-    ["/login", "/register", "/forgot-password"].includes(location.pathname) ||
-    location.pathname.startsWith("/admin");
+    [
+      "/",
+      "/auth",
+      "/auth/otp",
+      "/auth/success",
+      "/login",
+      "/register",
+      "/2",
+      "/3",
+      "/4",
+    ].includes(location.pathname) || location.pathname.startsWith("/admin");
 
   return (
     <>
-      <div className="min-h-screen bg-gray-50">
+      {hideNavbarFooter ? (
+        <div className="h-screen bg-gray-200 md:pt-10 pt-4 pb-40">
+          <Routes>
+            <Route path="/auth" element={<Choice />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/auth/otp" element={<Otp />} />
+            <Route path="/auth/success" element={<Success />} />
+            {/* <Route path="/forgot-password" element={<LoginPage />} /> */}
+
+            <Route path="/" element={<HomePage />} />
+            <Route path="/2" element={<HomePage2 />} />
+            <Route path="/3" element={<HomePage3 />} />
+            <Route path="/4" element={<HomePage4 />} />
+          </Routes>
+        </div>
+      ) : null}
+      <div className="min-h-screen bg-gray-100">
         <>
           {hideNavbarFooter ? null : (
             <>
@@ -51,14 +85,12 @@ const AppContent = () => {
             </>
           )}
 
-          <Routes>
-            <Route path="/register" element={<RegisterPage />} />
-            <Route path="/login" element={<LoginPage />} />
-          </Routes>
-
           <main className="container mx-auto px-4 py-8">
             <Routes>
-              <Route path="/" element={<DashboardPage loading={loading} />} />
+              <Route
+                path="/dashboard"
+                element={<DashboardPage loading={loading} />}
+              />
               <Route path="/bulls" element={<BullsPage loading={loading} />} />
               <Route path="/teams" element={<TeamsPage loading={loading} />} />
               <Route
