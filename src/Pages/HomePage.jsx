@@ -6,6 +6,7 @@ import BullHead from "../components/BullHead";
 import { Menu, X, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import heroImage2 from "../assets/header2.png";
+import bullLogo from "../assets/bullLogoA.png";
 
 const heroVariants = {
   hidden: { opacity: 0, y: 30 },
@@ -151,7 +152,7 @@ export default function HomePage() {
       </motion.header>
 
       {/* HERO SECTION  */}
-      <div className="pt-20 mx-auto">
+      <div className="pt-10 mx-auto">
         <Header />
       </div>
       <section className="grid grid-cols-1 md:grid-cols-2 gap-10 items-center">

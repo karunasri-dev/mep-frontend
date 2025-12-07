@@ -24,6 +24,12 @@ const Navigation = ({ mobileMenuOpen, setMobileMenuOpen }) => {
       icon: BarChart3,
       path: "/statistics",
     },
+    {
+      id: "register",
+      label: "register",
+      icon: BarChart3,
+      path: "/auth/register",
+    },
   ];
 
   return (

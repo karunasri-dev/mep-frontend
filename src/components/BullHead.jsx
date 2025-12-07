@@ -9,34 +9,57 @@ export default function BullHead() {
       className="w-12 h-12"
     >
       <g>
-        {/* Bull Head */}
+        {/* Sharper Bull Head */}
         <path
-          d="M24 8C20 8 16 10 14 14C12 10 8 8 4 8C4 8 2 10 2 14C2 18 4 20 6 20C6 20 8 32 12 36C14 38 16 40 24 40C32 40 34 38 36 36C40 32 42 20 42 20C44 20 46 18 46 14C46 10 44 8 44 8C40 8 36 10 34 14C32 10 28 8 24 8Z"
+          d="M24 6
+             C18 6 14 10 13 15
+             C11 12 7 10 4 10
+             C3 10 2 12 2 15
+             C2 19 5 22 8 22
+             C9 29 11 34 14 37
+             C17 40 20 41 24 41
+             C28 41 31 40 34 37
+             C37 34 39 29 40 22
+             C43 22 46 19 46 15
+             C46 12 45 10 44 10
+             C41 10 37 12 35 15
+             C34 10 30 6 24 6Z"
           fill="currentColor"
         />
-        {/* Horns */}
+
+        {/* Sharper Horns */}
         <path
-          d="M6 20C6 20 4 18 2 16C2 16 0 12 2 8C2 8 4 6 6 8C8 10 6 14 6 20Z"
+          d="M8 22
+             C6 18 4 14 4 10
+             C4 7 6 6 7 6
+             C10 7 10 11 10 14
+             C10 17 9 20 8 22Z"
           fill="currentColor"
         />
         <path
-          d="M42 20C42 20 44 18 46 16C46 16 48 12 46 8C46 8 44 6 42 8C40 10 42 14 42 20Z"
+          d="M40 22
+             C42 18 44 14 44 10
+             C44 7 42 6 41 6
+             C38 7 38 11 38 14
+             C38 17 39 20 40 22Z"
           fill="currentColor"
         />
-        {/* Eyes */}
-        <circle cx="18" cy="20" r="2" fill="#FFF" />
-        <circle cx="30" cy="20" r="2" fill="#FFF" />
-        {/* Nose ring */}
+
+        {/* Eyes – narrower & meaner */}
+        <rect x="16" y="19" width="4" height="2.2" rx="1" fill="#FFF" />
+        <rect x="28" y="19" width="4" height="2.2" rx="1" fill="#FFF" />
+
+        {/* Nose Ring */}
         <ellipse
           cx="24"
-          cy="30"
+          cy="31"
           rx="4"
-          ry="3"
+          ry="2.6"
           fill="none"
           stroke="#FFD700"
-          strokeWidth="1.5"
+          strokeWidth="1.8"
         />
-        <circle cx="24" cy="27" r="1" fill="#FFD700" />
+        <circle cx="24" cy="28" r="1.1" fill="#FFD700" />
       </g>
     </svg>
   );
