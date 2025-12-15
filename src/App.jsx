@@ -11,7 +11,7 @@ import Header from "./components/Header";
 import Navigation from "./components/Navigation";
 
 // user pages
-import DashboardPage from "./pages/DashboardPage";
+import DashboardPage from "./Pages/DashboardPage";
 import TeamsPage from "./pages/TeamsPage";
 import BullsPage from "./pages/BullsPage";
 // import GenericPage from "./pages/GenericPage";
@@ -19,13 +19,8 @@ import BullsPage from "./pages/BullsPage";
 import Choice from "./pages/auth/Choice";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
-import Otp from "./pages/auth/Otp";
-import Success from "./pages/auth/Success";
 
 import HomePage from "./Pages/HomePage";
-import HomePage2 from "./Pages/HomePage2";
-import HomePage3 from "./Pages/HomePage3";
-import HomePage4 from "./Pages/HomePage4";
 
 // admin pages
 import Dashboard from "./admin/pages/DashboardLayout";
@@ -39,6 +34,7 @@ import Home from "./admin/pages/HomePage";
 
 import { useAuth } from "./context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
 const GenericPage = ({ title, loading }) => {
   if (loading) return <ShimmerTable />;
@@ -57,9 +53,7 @@ const GenericPage = ({ title, loading }) => {
       PUBLIC ROUTES LAYOUT
 ------------------------- */
 function PublicLayout({ children }) {
-  return (
-    <div className="h-screen bg-gray-200 md:pt-10 pt-4 pb-40">{children}</div>
-  );
+  return <div className="min-h-screen bg-gray-200 ">{children}</div>;
 }
 
 /* -------------------------
@@ -81,20 +75,6 @@ function UserLayout({ children, mobileMenuOpen, setMobileMenuOpen }) {
 /* -------------------------
       ADMIN ROUTES LAYOUT
 ------------------------- */
-// function AdminLayout() {
-//   return (
-//     <Layout>
-//       <Routes>
-//         <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
-//         <Route path="/admin/users" element={<UserApprovals />} />
-//         <Route path="/admin/events" element={<EventManagement />} />
-//         <Route path="/admin/champions" element={<ChampionManagement />} />
-//         <Route path="/admin/teams" element={<ActiveTeams />} />
-//         <Route path="/admin/home" element={<Home />} />
-//       </Routes>
-//     </Layout>
-//   );
-// }
 
 function AdminRoutes() {
   const navigate = useNavigate();
@@ -134,17 +114,7 @@ function AppContent() {
   const { isLogin } = useAuth() || {};
   const location = useLocation();
 
-  const PUBLIC_PATHS = [
-    "/",
-    "/auth",
-    "/auth/otp",
-    "/auth/success",
-    "/login",
-    "/register",
-    "/2",
-    "/3",
-    "/4",
-  ];
+  const PUBLIC_PATHS = ["/", "/auth", "/login", "/register"];
 
   const isPublic = PUBLIC_PATHS.includes(location.pathname);
   const isAdmin = location.pathname.startsWith("/admin");
@@ -157,19 +127,15 @@ function AppContent() {
 
   return (
     <>
+      <Toaster position="top-right" />
       {isPublic && (
         <PublicLayout>
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/2" element={<HomePage2 />} />
-            <Route path="/3" element={<HomePage3 />} />
-            <Route path="/4" element={<HomePage4 />} />
 
             <Route path="/auth" element={<Choice />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/auth/otp" element={<Otp />} />
-            <Route path="/auth/success" element={<Success />} />
           </Routes>
         </PublicLayout>
       )}

@@ -26,9 +26,10 @@ const Navigation = ({ mobileMenuOpen, setMobileMenuOpen }) => {
     },
     {
       id: "register",
-      label: "register",
-      icon: BarChart3,
-      path: "/auth/register",
+      label: "Register",
+      icon: UserSquare2,
+      path: "/register",
+      style: "md:ml-50",
     },
   ];
 
@@ -54,7 +55,7 @@ const Navigation = ({ mobileMenuOpen, setMobileMenuOpen }) => {
                 <Link
                   key={item.id}
                   to={item.path}
-                  className={`flex items-center space-x-2 px-6 py-4 font-medium transition-all ${
+                  className={`flex items-center space-x-2 px-6 py-4 font-medium transition-all ${item.style?.trim()} ${
                     active
                       ? "text-orange-600 border-b-4 border-orange-600 bg-orange-50"
                       : "text-gray-600 hover:text-orange-500 hover:bg-gray-50"

@@ -5,13 +5,13 @@ const AuthContext = createContext(null);
 export function AuthProvider({ children }) {
   const [name, setName] = useState("");
   const [mobile, setMobile] = useState("");
+  const [password, setPassword] = useState("");
   const [isLogin, setIsLogin] = useState(false);
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
   const reset = () => {
     setName("");
     setMobile("");
-    setOtp(["", "", "", "", "", ""]);
+    setPassword("");
     setIsLogin(false);
   };
 
@@ -20,12 +20,16 @@ export function AuthProvider({ children }) {
       value={{
         name,
         setName,
+
         mobile,
         setMobile,
+
+        password,
+        setPassword,
+
         isLogin,
         setIsLogin,
-        otp,
-        setOtp,
+
         reset,
       }}
     >
