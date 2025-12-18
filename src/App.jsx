@@ -14,6 +14,7 @@ import Navigation from "./components/Navigation";
 import DashboardPage from "./Pages/DashboardPage";
 import TeamsPage from "./pages/TeamsPage";
 import BullsPage from "./pages/BullsPage";
+import TeamDetailsPage from "./Pages/TeamDetailsPage";
 // import GenericPage from "./pages/GenericPage";
 
 import Choice from "./pages/auth/Choice";
@@ -24,7 +25,6 @@ import HomePage from "./Pages/HomePage";
 
 // admin pages
 import Dashboard from "./admin/pages/DashboardLayout";
-import Layout from "./admin/components/Layout/Layout";
 import UserApprovals from "./admin/pages/UserApprovals";
 import EventManagement from "./admin/pages/EventManagement";
 import ChampionManagement from "./admin/pages/ChampionManagment";
@@ -77,30 +77,16 @@ function UserLayout({ children, mobileMenuOpen, setMobileMenuOpen }) {
 ------------------------- */
 
 function AdminRoutes() {
-  const navigate = useNavigate();
   return (
     <Routes>
-      <Route element={<Dashboard />}>
-        <Route index element={<Navigate to="users" replace />} />
-        <Route path="/admin/users" element={<UserApprovals />} />
-        <Route path="/admin/events" element={<EventManagement />} />
-        <Route path="/admin/champions" element={<ChampionManagement />} />
-        <Route
-          path="/admin/teams"
-          element={
-            <ActiveTeams
-              onNavigateToTeamDetails={(id) =>
-                navigate(`/admin/teams-details/${id}`)
-              }
-              onBack={() => navigate("/admin/home")}
-            />
-          }
-        />
-        <Route path="/admin/teams-details/:id" element={<TeamDetails />} />
-        <Route
-          path="/admin/home"
-          element={<Home onNavigateToTeams={() => navigate("/admin/teams")} />}
-        />
+      <Route path="/admin" element={<Dashboard />}>
+        <Route index element={<Navigate to="home" replace />} />
+        <Route path="users" element={<UserApprovals />} />
+        <Route path="events" element={<EventManagement />} />
+        <Route path="champions" element={<ChampionManagement />} />
+        <Route path="teams" element={<ActiveTeams />} />
+        <Route path="teams-details/:id" element={<TeamDetails />} />
+        <Route path="home" element={<Home />} />
       </Route>
     </Routes>
   );
@@ -164,6 +150,10 @@ function AppContent() {
             <Route
               path="/statistics"
               element={<GenericPage title="Statistics" loading={loading} />}
+            />
+            <Route
+              path="/teams/:id"
+              element={<TeamDetailsPage loading={loading} />}
             />
           </Routes>
         </UserLayout>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Menu, X, Trophy } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
+import Header from "../../components/Header";
 
 const adminTabs = [
   { id: "home", label: "Dashboard Home", path: "/admin/home" },
@@ -25,6 +26,7 @@ export default function Dashboard() {
               <p className="text-gray-600 text-sm">Bull Race Management</p>
             </div>
           </div>
+          {/* <Header /> */}
 
           <button
             className="lg:hidden p-2 rounded-md hover:bg-gray-100"

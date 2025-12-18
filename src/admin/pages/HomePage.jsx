@@ -9,8 +9,14 @@ import {
 import CardItem from "../components/Home/CardItem";
 import QuickStat from "../components/Home/QuickStat";
 import RecentActivityItem from "../components/Home/RecentAvtivityItem";
+import { useNavigate } from "react-router-dom";
 
-export default function Home({ onNavigateToTeams }) {
+export default function Home() {
+  const navigate = useNavigate();
+
+  const onNavigateToTeams = () => {
+    navigate("/admin/teams");
+  };
   const cards = [
     {
       id: "active-teams",
@@ -109,93 +115,43 @@ export default function Home({ onNavigateToTeams }) {
         </p>
       </div>
 
-      {/* Cards */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {cards.map((card) => (
-          <CardItem key={card.id} {...card} />
-        ))}
-      </div> */}
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {cards.map((card) => {
           const Icon = card.icon;
+
           return (
             <div
               key={card.id}
               onClick={card.onClick}
-              className={`relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 ${
-                card.onClick ? "cursor-pointer" : ""
-              }`}
+              className={`border border-stone-300 bg-white p-6
+          hover:border-amber-600 transition
+          ${card.onClick ? "cursor-pointer" : ""}`}
             >
-              {/* Background Pattern */}
-              <div
-                className={`absolute inset-0 bg-linear-to-br ${card.bgPattern} opacity-50`}
-              />
+              {/* Header */}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-stone-700 font-medium">{card.title}</h3>
 
-              {/* Decorative Circle */}
-              <div className="absolute -right-8 -top-8 w-32 h-32 bg-white opacity-10 rounded-full" />
-              <div className="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full" />
-
-              {/* Content */}
-              <div className="relative p-6">
-                {/* Icon */}
-                <div
-                  className={`inline-flex p-4 rounded-2xl bg-linear-to-br ${
-                    card.gradient
-                  } shadow-lg mb-4 ${card.pulse ? "animate-pulse" : ""}`}
-                >
-                  <Icon className="w-8 h-8 text-white" />
-                </div>
-
-                {/* Live Indicator */}
-                {card.pulse && (
-                  <div className="absolute top-6 right-6 flex items-center gap-2">
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                    </span>
-                    <span className="text-red-600 text-sm">LIVE</span>
-                  </div>
-                )}
-
-                {/* Value */}
-                <div className="mb-2">
-                  <div
-                    className={`text-5xl bg-linear-to-r ${card.gradient} bg-clip-text text-transparent`}
-                  >
-                    {card.value}
-                  </div>
-                </div>
-
-                {/* Title */}
-                <h3 className="text-gray-900 mb-1">{card.title}</h3>
-
-                {/* Subtitle */}
-                <p className="text-gray-600">{card.subtitle}</p>
-
-                {/* Click Indicator */}
-                {card.onClick && (
-                  <div className="mt-4 flex items-center gap-2 text-gray-500 text-sm">
-                    <span>Click to view details</span>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9 5l7 7-7 7"
-                      />
-                    </svg>
-                  </div>
-                )}
+                <Icon className="w-5 h-5 text-amber-700" />
               </div>
 
-              {/* Bottom Accent */}
-              <div className={`h-1 bg-linear-to-r ${card.gradient}`} />
+              {/* Value */}
+              <div className="text-4xl font-serif text-stone-900 mb-1">
+                {card.value}
+              </div>
+
+              {/* Subtitle */}
+              <p className="text-sm text-stone-500">{card.subtitle}</p>
+
+              {/* Indicator */}
+              {card.onClick && (
+                <p className="mt-4 text-sm text-amber-700 font-medium">
+                  View details →
+                </p>
+              )}
+              {card.pulse && (
+                <span className="text-xs text-red-700 font-medium">● LIVE</span>
+              )}
             </div>
           );
         })}

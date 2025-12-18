@@ -4,8 +4,10 @@ import TeamStats from "./TeamStats";
 import RecentEvents from "./RecentEvents";
 import TeamMembers from "./TeamMembers";
 import BullInfo from "./BullInfo";
+import { useNavigate } from "react-router-dom";
 
 export default function TeamDetails({ teamId, onBack }) {
+  const navigate = useNavigate();
   // your mock team data remains same here
   const team = {
     id: teamId,
@@ -68,7 +70,7 @@ export default function TeamDetails({ teamId, onBack }) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <button
-        onClick={onBack}
+        onClick={() => navigate("/admin/teams")}
         className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
       >
         <ArrowLeft className="w-5 h-5" />

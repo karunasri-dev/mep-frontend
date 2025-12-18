@@ -14,6 +14,7 @@ const BullsPage = () => {
         { name: "Bull A", category: "senior" },
         { name: "Bull B", category: "junior" },
       ],
+      drivers: ["Driver 1", "Driver 2"],
       contact: "9876543210",
       totalMembers: 5,
     },

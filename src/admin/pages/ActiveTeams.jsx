@@ -2,8 +2,17 @@ import { useState } from "react";
 import TeamsHeader from "../components/ActiveTeams/TeamsHeader";
 import TeamsSearchBar from "../components/ActiveTeams/TeamsSearchBar";
 import TeamCard from "../components/ActiveTeams/TeamCard";
+import { useNavigate } from "react-router-dom";
 
-export default function ActiveTeams({ onNavigateToTeamDetails, onBack }) {
+export default function ActiveTeams() {
+  const navigate = useNavigate();
+
+  const onBack = () => {
+    navigate("/admin/");
+  };
+  const onNavigateToTeamDetails = (teamId) => {
+    navigate(`/admin/teams-details/${teamId}`);
+  };
   const [searchTerm, setSearchTerm] = useState("");
 
   const teams = [
