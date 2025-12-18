@@ -74,7 +74,7 @@ export default function Register() {
   };
 
   return (
-    <div className="pt-10 pb-40">
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6">
       <motion.div
         key="register"
         initial={{ opacity: 0, x: 100, rotateY: -90 }}
@@ -82,8 +82,10 @@ export default function Register() {
         exit={{ opacity: 0, x: -100, rotateY: 90 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
         className="bg-linear-to-br from-amber-950/90 to-orange-950/90 
-        backdrop-blur-xl rounded-3xl p-8 shadow-2xl border-2 border-amber-700/50 
-        w-[70%] sm:w-[60%] md:w-[50%] lg:w-[40%] mx-auto flex flex-col"
+        backdrop-blur-xl rounded-3xl  w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl
+      p-4 sm:p-6 md:p-8 mt-6 sm:mt-10
+ shadow-2xl border-2 border-amber-700/50 
+       mx-auto flex flex-col"
       >
         {/* Header */}
         <motion.div
@@ -92,13 +94,32 @@ export default function Register() {
           transition={{ delay: 0.2 }}
           className="mb-3 text-center"
         >
-          <div className="inline-block mb-4">
+          <motion.div
+            animate={{
+              scale: [1, 1.1, 1],
+              rotate: [0, 5, -5, 0],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              repeatType: "reverse",
+            }}
+            className="inline-block mb-6"
+          >
             <div className="relative">
-              <Zap className="w-20 h-20 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]" />
+              <Zap className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]" />
+              <motion.div
+                animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute inset-0 bg-amber-400 rounded-full blur-lg sm:blur-xl
+"
+              />
             </div>
-          </div>
+          </motion.div>
 
-          <motion.h1 className="text-amber-100 mb-2">MANAEDLAPANDALU</motion.h1>
+          <motion.h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-100 mb-2">
+            MANAEDLAPANDALU
+          </motion.h1>
           <h2 className="text-amber-100">Register</h2>
         </motion.div>
         <button
@@ -151,10 +172,13 @@ export default function Register() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={`w-full bg-linear-to-r from-red-700 to-orange-700 
-              text-white rounded-2xl p-3 flex items-center justify-center gap-3 
-              border-2 border-red-600`}
+              text-white rounded-2xl py-3 px-4 sm:py-4 sm:px-6
+text-sm sm:text-base
+ flex items-center justify-center gap-3 
+              border-2 border-red-600 
+              focus:outline-none focus:ring-2 focus:ring-red-500`}
             >
-              Continue <ArrowRight className="w-5 h-5" />
+              Sign Up <ArrowRight className="w-5 h-5" />
             </motion.button>
 
             <button
@@ -198,7 +222,7 @@ function InputField({
           value={value}
           maxLength={maxLength}
           onChange={(e) => onChange(e.target.value)}
-          className={`w-full bg-amber-900/50 border-2 rounded-2xl pl-12 py-2 text-amber-100
+          className={`w-full bg-amber-900/50 border-2 rounded-2xl pl-12 py-2 text-amber-100 focus:outline-none focus:ring-1 focus:ring-amber-500 text-sm sm:text-base
           ${error ? "border-red-500" : "border-amber-600"}`}
         />
       </div>

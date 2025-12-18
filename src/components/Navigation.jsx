@@ -10,10 +10,13 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 
 const Navigation = () => {
   // Navigation OWNS its state now (correct design)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const { isLogin } = useAuth() || {};
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, path: "/" },
@@ -27,7 +30,12 @@ const Navigation = () => {
       icon: BarChart3,
       path: "/statistics",
     },
-    { id: "register", label: "Register", icon: UserSquare2, path: "/register" },
+    {
+      id: `${isLogin ? "profile" : "register"}`,
+      label: `${isLogin ? "Profile" : "Register"}`,
+      icon: UserSquare2,
+      path: `${isLogin ? "/profile" : "/register"}`,
+    },
   ];
 
   return (
