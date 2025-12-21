@@ -1,36 +1,41 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import axios from "axios";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [username, setUsername] = useState("");
-  const [mobileNumber, setMobileNumber] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLogin, setIsLogin] = useState(false);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const reset = () => {
-    setUsername("");
-    setMobileNumber("");
-    setPassword("");
-    setIsLogin(false);
+  const checkAuth = async () => {
+    try {
+      const res = await axios.get("/api/auth/user", {
+        withCredentials: true,
+      });
+      setUser(res.data);
+    } catch {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const logout = async () => {
+    await axios.post("/auth/logout", {}, { withCredentials: true });
+    setUser(null);
   };
 
   return (
     <AuthContext.Provider
       value={{
-        username,
-        setUsername,
-
-        mobileNumber,
-        setMobileNumber,
-
-        password,
-        setPassword,
-
-        isLogin,
-        setIsLogin,
-
-        reset,
+        user,
+        isLogin: !!user,
+        loading,
+        logout,
       }}
     >
       {children}
@@ -38,6 +43,4 @@ export function AuthProvider({ children }) {
   );
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export const useAuth = () => useContext(AuthContext);
