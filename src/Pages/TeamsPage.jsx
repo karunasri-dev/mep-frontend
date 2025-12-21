@@ -34,10 +34,6 @@ const TeamsPage = ({ loading }) => {
         <h2 className="text-3xl font-serif font-semibold text-stone-800">
           Active Teams
         </h2>
-
-        <button className="px-5 py-2 border border-amber-700 text-amber-800 font-medium hover:bg-amber-700 hover:text-white transition">
-          Add Team
-        </button>
       </div>
 
       {/* Cards */}

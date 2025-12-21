@@ -12,14 +12,14 @@ import Navigation from "./components/Navigation";
 
 // user pages
 import DashboardPage from "./Pages/DashboardPage";
-import TeamsPage from "./pages/TeamsPage";
-import BullsPage from "./pages/BullsPage";
+import TeamsPage from "./Pages/TeamsPage";
+import BullsPage from "./Pages/BullsPage";
 import TeamDetailsPage from "./Pages/TeamDetailsPage";
-// import GenericPage from "./pages/GenericPage";
+import DriversPage from "./Pages/DriversPage";
 
 import Choice from "./pages/auth/Choice";
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
+import Login from "./Pages/auth/Login";
+import Register from "./Pages/auth/Register";
 
 import HomePage from "./Pages/HomePage";
 
@@ -35,6 +35,7 @@ import Home from "./admin/pages/HomePage";
 import { useAuth } from "./context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { ShimmerTable } from "./components/ShimmerEffect";
 
 const GenericPage = ({ title, loading }) => {
   if (loading) return <ShimmerTable />;
@@ -141,7 +142,7 @@ function AppContent() {
 
             <Route
               path="/drivers"
-              element={<GenericPage title="Drivers" loading={loading} />}
+              element={<DriversPage loading={loading} />}
             />
             <Route
               path="/events"
