@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { createTeam } from "../services/team.service";
 
 const CATEGORY_MAP = {
   milk_teeth: { type: "DENTITION", value: "MILK" },
@@ -22,6 +23,8 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
     bulls: [{ name: "", categoryKey: "senior" }],
     members: [{ name: "", role: "DRIVER", info: "" }], // additional members (non-owner)
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   /* ---------------- BASIC HANDLERS ---------------- */
 
@@ -69,7 +72,7 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
 
   /* ---------------- SUBMIT ---------------- */
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!form.teamName.trim() || !form.ownerName.trim()) return;
@@ -100,7 +103,26 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
       ],
     };
 
-    onSubmit(payload);
+    setLoading(true);
+    setError("");
+    try {
+      console.log("Payload:");
+      console.log(payload);
+
+      const result = await createTeam(payload);
+      // On success, perhaps reset form or call onSubmit
+      setForm({
+        teamName: "",
+        ownerName: "",
+        bulls: [{ name: "", categoryKey: "senior" }],
+        members: [{ name: "", role: "DRIVER", info: "" }],
+      });
+      if (onSubmit) onSubmit(result);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to create team");
+    } finally {
+      setLoading(false);
+    }
   };
 
   /* ---------------- UI ---------------- */
@@ -108,6 +130,7 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
   return (
     <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-6">
       <h3 className="text-xl font-bold mb-6 text-gray-800">Add Bull Team</h3>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Team + Owner */}
@@ -243,9 +266,10 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
           </button>
           <button
             type="submit"
-            className="px-5 py-2 rounded-lg bg-orange-600 text-white"
+            disabled={loading}
+            className="px-5 py-2 rounded-lg bg-orange-600 text-white disabled:opacity-50"
           >
-            Save Team
+            {loading ? "Saving..." : "Save Team"}
           </button>
         </div>
       </form>

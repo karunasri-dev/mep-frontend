@@ -21,10 +21,11 @@ import TeamsPage from "./Pages/TeamsPage";
 import BullsPage from "./Pages/BullsPage";
 import TeamDetailsPage from "./Pages/TeamDetailsPage";
 import DriversPage from "./Pages/DriversPage";
+import ProfilePage from "./Pages/ProfilePage";
 
 // admin pages
 import Dashboard from "./admin/pages/DashboardLayout";
-import UserApprovals from "./admin/pages/UserApprovals";
+import TeamApproval from "./admin/pages/TeamApproval";
 import EventManagement from "./admin/pages/EventManagement";
 import ChampionManagement from "./admin/pages/ChampionManagment";
 import ActiveTeams from "./admin/pages/ActiveTeams";
@@ -83,13 +84,13 @@ function AdminRoutes() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute roles={['admin']}>
+          <ProtectedRoute roles={["admin"]}>
             <Dashboard />{" "}
           </ProtectedRoute>
         }
       >
         <Route index element={<Navigate to="home" replace />} />
-        <Route path="users" element={<UserApprovals />} />
+        <Route path="users" element={<TeamApproval />} />
         <Route path="events" element={<EventManagement />} />
         <Route path="champions" element={<ChampionManagement />} />
         <Route path="teams" element={<ActiveTeams />} />
@@ -130,6 +131,10 @@ function AppContent() {
             <Route path="/auth" element={<Choice />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route
+              path="/unauthorized"
+              element={<div>Unauthorized Access</div>}
+            />
           </Routes>
         </PublicLayout>
       )}
@@ -162,6 +167,10 @@ function AppContent() {
             <Route
               path="/teams/:id"
               element={<TeamDetailsPage loading={loading} />}
+            />
+            <Route
+              path="/profile"
+              element={<ProfilePage loading={loading} />}
             />
           </Routes>
         </UserLayout>
