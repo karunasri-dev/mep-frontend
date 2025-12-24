@@ -7,34 +7,30 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Attach access token
-api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem("accessToken");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
 // Handle expired access token
 api.interceptors.response.use(
   (res) => res,
-  async (error) => {
-    if (error.response?.status === 401) {
+  async (err) => {
+    console.log("Token expired, attempting refresh");
+    const originalRequest = err.config;
+
+    if (err.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+
       try {
-        const res = await api.get("/auth/user");
-        sessionStorage.setItem("accessToken", res.data.accessToken);
-
-        error.config.headers.Authorization = `Bearer ${res.data.accessToken}`;
-
-        return api(error.config);
+        await api.post("/api/auth/refresh");
+        return api(originalRequest); // retry original call
       } catch {
+        // refresh failed → redirect to login
         window.location.href = "/login";
       }
     }
-    return Promise.reject(error);
+
+    return Promise.reject(err);
   }
 );
+
+export default api;
 
 export const registerAPI = (data) => {
   return api.post(`/api/auth/register`, data);
@@ -46,6 +42,10 @@ export const loginAPI = (data) => {
 
 export const logoutAPI = () => {
   return api.post(`/api/auth/logout`, {});
+};
+
+export const forgotPasswordAPI = (mobileNumber) => {
+  return api.post(`/api/auth/forgot-password`, { mobileNumber });
 };
 
 export const verifyUserAPI = () => {

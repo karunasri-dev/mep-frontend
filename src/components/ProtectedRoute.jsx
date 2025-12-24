@@ -3,12 +3,17 @@ import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "./LoadingSpinner";
 
 export default function ProtectedRoute({ children, roles = [] }) {
-  const { user, isLogin, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) return <LoadingSpinner />;
-  if (!isLogin) return <Navigate to="/login" />;
-  if (roles.length > 0 && !roles.includes(user.role)) {
-    return <Navigate to="/unauthorized" />;
+
+  if (!user) return <Navigate to="/login" replace />;
+
+  const userRole = user.role?.toLowerCase();
+  const allowedRoles = roles.map((r) => r.toLowerCase());
+
+  if (roles.length > 0 && !allowedRoles.includes(userRole)) {
+    return <Navigate to="/unauthorized" replace />;
   }
 
   return children;
