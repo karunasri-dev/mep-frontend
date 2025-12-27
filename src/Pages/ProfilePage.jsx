@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getUserTeamsApi } from "../api/team.api";
-import { changePasswordAPI } from "../api/auth.api";
-import { logoutUser } from "../services/auth.service";
+import { getUserTeamsApi } from "../services/teams";
+import { changePasswordAPI } from "../services/auth/index";
+import { logoutAPI } from "../services/auth/index";
 import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -73,17 +73,16 @@ const ProfilePage = () => {
 
   const handleLogout = async () => {
     try {
-      const res = await logoutUser();
-      console.log(res);
-      logout(); // Clear user state in AuthContext
-      // Dispatch logout event for any other listeners
+      await logoutAPI();
+
       window.dispatchEvent(new CustomEvent("auth-logout"));
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
-      // Even if logout fails, clear state and redirect
-      logout();
+
       window.dispatchEvent(new CustomEvent("auth-logout"));
+      navigate("/login");
+    } finally {
       navigate("/login");
     }
   };

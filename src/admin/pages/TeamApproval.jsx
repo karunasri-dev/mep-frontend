@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import SearchFilterBar from "../components/UsersApproval/SearchFilterBar";
-import UserCard from "../components/UsersApproval/UserCard";
-import { fetchPendingTeams, decideTeam } from "../../services/team.service";
+import SearchFilterBar from "../components/TeamApproval/SearchFilterBar";
+import TeamCard from "../components/TeamApproval/TeamCard";
+import {
+  fetchPendingTeamsAPI,
+  decideTeamAPI,
+} from "../../services/teams/index";
 import toast from "react-hot-toast";
 
 export default function TeamApproval() {
@@ -15,7 +18,7 @@ export default function TeamApproval() {
   useEffect(() => {
     const loadTeams = async () => {
       try {
-        const data = await fetchPendingTeams();
+        const data = await fetchPendingTeamsAPI();
         setTeams(data);
       } catch (err) {
         toast.error(err.message || "Failed to load pending teams");
@@ -30,7 +33,7 @@ export default function TeamApproval() {
   // 🔹 APPROVE
   const handleApprove = async (teamId) => {
     try {
-      await decideTeam(teamId, "APPROVED");
+      await decideTeamAPI(teamId, "APPROVED");
       setTeams((prev) => prev.filter((t) => t._id !== teamId));
       toast.success("Team approved");
     } catch (err) {
@@ -100,7 +103,7 @@ export default function TeamApproval() {
           </div>
         ) : (
           filteredTeams.map((team) => (
-            <UserCard
+            <TeamCard
               key={team._id}
               user={{
                 id: team._id,

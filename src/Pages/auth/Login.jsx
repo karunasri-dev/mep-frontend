@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 import { Phone, Lock, ArrowRight, Zap } from "lucide-react";
 import toast from "react-hot-toast";
 import { validateLogin } from "../../utils/validation";
-import { loginUser } from "../../services/auth.service";
+import { loginAPI } from "../../services/auth";
 
 export default function Login() {
   //  LOCAL FORM STATE
@@ -14,7 +14,6 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const { checkAuth } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -27,15 +26,22 @@ export default function Login() {
     try {
       setLoading(true);
 
-      await loginUser({ mobileNumber, password });
+      const res = await loginAPI({ mobileNumber, password });
+      const user = res.data.data.user;
 
-      // VERIFY SESSION FROM BACKEND
-      await checkAuth();
+      if (!user) {
+        throw new Error("Malformed login response");
+      }
 
       toast.success("Login successful");
       navigate("/bulls");
     } catch (err) {
-      toast.error(err.message || "Login failed");
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        "Invalid mobile number or password";
+
+      toast.error(message);
     } finally {
       setLoading(false);
     }

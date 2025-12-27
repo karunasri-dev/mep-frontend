@@ -34,7 +34,6 @@ import Home from "./admin/pages/HomePage";
 
 import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { useNavigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { ShimmerTable } from "./components/ShimmerEffect";
 

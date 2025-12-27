@@ -1,5 +1,6 @@
-import { useState } from "react";
-import { createTeam } from "../services/team.service";
+import { useRef, useState } from "react";
+import { createTeamAPI } from "../services/teams/index";
+import { useTeams } from "../context/TeamContext";
 
 const CATEGORY_MAP = {
   milk_teeth: { type: "DENTITION", value: "MILK" },
@@ -17,14 +18,17 @@ const CATEGORY_MAP = {
 };
 
 const CreateTeam = ({ onSubmit, onCancel }) => {
+  const { refreshTeams } = useTeams();
   const [form, setForm] = useState({
     teamName: "",
     ownerName: "",
-    bulls: [{ name: "", categoryKey: "senior" }],
-    members: [{ name: "", role: "DRIVER", info: "" }], // additional members (non-owner)
+    bullPairs: [{ bullA: "", bullB: "", categoryKey: "senior" }],
+    teamMembers: [{ name: "", role: "DRIVER", info: "" }], // additional members (non-owner)
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const bullBRefs = useRef([]);
 
   /* ---------------- BASIC HANDLERS ---------------- */
 
@@ -35,16 +39,25 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
 
   /* ---------------- BULL HANDLERS ---------------- */
 
-  const handleBullChange = (i, field, value) => {
-    const bulls = [...form.bulls];
-    bulls[i][field] = value;
-    setForm((p) => ({ ...p, bulls }));
+  const handleBullPairChange = (i, field, value) => {
+    const bullPairs = [...form.bullPairs];
+    bullPairs[i][field] = value;
+    setForm((p) => ({ ...p, bullPairs }));
   };
 
-  const addBull = () => {
+  const addBullPair = () => {
     setForm((p) => ({
       ...p,
-      bulls: [...p.bulls, { name: "", categoryKey: p.bulls[0].categoryKey }],
+      bullPairs: [
+        ...p.bullPairs,
+        { bullA: "", bullB: "", categoryKey: "senior" },
+      ],
+    }));
+  };
+  const removeBullPair = (i) => {
+    setForm((p) => ({
+      ...p,
+      bullPairs: p.bullPairs.filter((_, idx) => idx !== i),
     }));
   };
 
@@ -53,36 +66,79 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
   const addMember = () => {
     setForm((p) => ({
       ...p,
-      members: [...p.members, { name: "", role: "DRIVER", info: "" }],
+      teamMembers: [...p.teamMembers, { name: "", role: "DRIVER", info: "" }],
     }));
   };
 
   const updateMember = (i, field, value) => {
-    const members = [...form.members];
-    members[i][field] = value;
-    setForm((p) => ({ ...p, members }));
+    const teamMembers = [...form.teamMembers];
+    teamMembers[i][field] = value;
+    setForm((p) => ({ ...p, teamMembers }));
   };
 
   const removeMember = (i) => {
     setForm((p) => ({
       ...p,
-      members: p.members.filter((_, idx) => idx !== i),
+      teamMembers: p.teamMembers.filter((_, idx) => idx !== i),
     }));
   };
 
   /* ---------------- SUBMIT ---------------- */
+  const validateForm = () => {
+    if (!form.teamName.trim()) {
+      return "Team name is required";
+    }
+
+    if (!form.ownerName.trim()) {
+      return "Owner name is required";
+    }
+
+    if (!form.bullPairs.length) {
+      return "At least one bull pair is required";
+    }
+
+    for (const pair of form.bullPairs) {
+      if (!pair.bullA.trim() || !pair.bullB.trim()) {
+        return "Each bull pair must have two bull names";
+      }
+
+      if (pair.bullA.trim() === pair.bullB.trim()) {
+        return "Bull pair cannot have the same bull twice";
+      }
+
+      if (!CATEGORY_MAP[pair.categoryKey]) {
+        return "Invalid category selected";
+      }
+      const category = CATEGORY_MAP[pair.categoryKey];
+      if (!category || !category.type || !category.value) {
+        return "Each bull pair must have a valid category";
+      }
+    }
+
+    return null; // valid
+  };
+
+  const isFormValid = !validateForm();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.teamName.trim() || !form.ownerName.trim()) return;
+    const validationError = validateForm();
+    if (validationError) {
+      setError(validationError);
+      return; // STOP SUBMISSION
+    }
 
     const payload = {
       teamName: form.teamName.trim(),
 
-      bulls: form.bulls.map((b) => ({
-        name: b.name.trim(),
-        category: CATEGORY_MAP[b.categoryKey],
+      bullPairs: form.bullPairs.map((p) => ({
+        bullA: { name: p.bullA.trim() },
+        bullB: { name: p.bullB.trim() },
+        category: {
+          type: CATEGORY_MAP[p.categoryKey]?.type,
+          value: CATEGORY_MAP[p.categoryKey]?.value,
+        },
       })),
 
       teamMembers: [
@@ -93,7 +149,7 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
         },
 
         // Other members
-        ...form.members
+        ...form.teamMembers
           .filter((m) => m.name.trim())
           .map((m) => ({
             name: m.name.trim(),
@@ -106,18 +162,18 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
     setLoading(true);
     setError("");
     try {
-      // console.log("Payload:");
-      // console.log(payload);
+      console.log("FINAL PAYLOAD", JSON.stringify(payload, null, 2));
 
-      const result = await createTeam(payload);
+      const result = await createTeamAPI(payload);
+      await refreshTeams();
+      onSubmit?.(result);
       // On success, perhaps reset form or call onSubmit
       setForm({
         teamName: "",
         ownerName: "",
-        bulls: [{ name: "", categoryKey: "senior" }],
-        members: [{ name: "", role: "DRIVER", info: "" }],
+        bullPairs: [{ bullA: "", bullB: "", categoryKey: "senior" }],
+        teamMembers: [{ name: "", role: "DRIVER", info: "" }],
       });
-      if (onSubmit) onSubmit(result);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to create team");
     } finally {
@@ -128,8 +184,8 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
   /* ---------------- UI ---------------- */
 
   return (
-    <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-6">
-      <h3 className="text-xl font-bold mb-6 text-gray-800">Add Bull Team</h3>
+    <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-6 ">
+      <h3 className="text-xl font-bold mb-6 text-gray-800">Add Your Team</h3>
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -151,56 +207,84 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
           />
         </div>
 
-        {/* Bulls */}
-        <div className="space-y-2">
+        {/* Bull Pairs */}
+        <div className="space-y-3">
           <p className="font-semibold text-gray-700 text-sm">
-            Bulls ({form.bulls.length})
+            Bull Pairs ({form.bullPairs.length})
           </p>
 
-          {form.bulls.map((bull, i) => (
-            <div key={i} className="flex gap-3">
-              <input
-                placeholder="Bull Name"
-                value={bull.name}
-                onChange={(e) => handleBullChange(i, "name", e.target.value)}
-                className="flex-1 border rounded-lg px-3 py-2 text-sm"
-              />
-
+          {form.bullPairs.map((pair, i) => (
+            <div key={i} className="space-y-2 border rounded-lg p-3">
+              {/* Category */}
               <select
-                value={bull.categoryKey}
+                value={pair.categoryKey}
                 onChange={(e) =>
-                  handleBullChange(i, "categoryKey", e.target.value)
+                  handleBullPairChange(i, "categoryKey", e.target.value)
                 }
-                className="border rounded-lg px-3 py-2 text-sm"
+                className="w-full border rounded-lg px-3 py-2 text-sm"
               >
-                <optgroup label="Dentition">
-                  <option value="milk_teeth">Milk Teeth</option>
-                  <option value="two_teeth">Two Teeth</option>
-                  <option value="four_teeth">Four Teeth</option>
-                  <option value="six_teeth">Six Teeth</option>
-                </optgroup>
+                <option value="milk_teeth">Milk Teeth</option>
+                <option value="two_teeth">Two Teeth</option>
+                <option value="four_teeth">Four Teeth</option>
+                <option value="six_teeth">Six Teeth</option>
 
-                <optgroup label="Age Group">
-                  <option value="sub_junior">Sub Junior</option>
-                  <option value="junior">Junior</option>
-                  <option value="senior">Senior</option>
-                </optgroup>
+                <option value="sub_junior">Sub Junior</option>
+                <option value="junior">Junior</option>
+                <option value="senior">Senior</option>
 
-                <optgroup label="Class">
-                  <option value="general">General</option>
-                  <option value="new">New</option>
-                  <option value="old">Old</option>
-                </optgroup>
+                <option value="general">General</option>
+                <option value="new">New</option>
+                <option value="old">Old</option>
               </select>
+
+              {/* Bulls + Remove */}
+              <div className="flex items-center gap-3">
+                {/* Bull 1 */}
+                <input
+                  placeholder="Bull 1 Name"
+                  value={pair.bullA}
+                  onChange={(e) =>
+                    handleBullPairChange(i, "bullA", e.target.value)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      bullBRefs.current[i]?.focus();
+                    }
+                  }}
+                  className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                />
+
+                {/* Bull 2 */}
+                <input
+                  ref={(el) => (bullBRefs.current[i] = el)}
+                  placeholder="Bull 2 Name"
+                  value={pair.bullB}
+                  onChange={(e) =>
+                    handleBullPairChange(i, "bullB", e.target.value)
+                  }
+                  className="flex-1 border rounded-lg px-3 py-2 text-sm"
+                />
+
+                {/* Remove */}
+                <button
+                  type="button"
+                  onClick={() => removeBullPair(i)}
+                  className="text-red-500 text-lg px-2 hover:text-red-700"
+                  title="Remove bull pair"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           ))}
 
           <button
             type="button"
-            onClick={addBull}
+            onClick={addBullPair}
             className="text-sm text-orange-600 font-medium"
           >
-            + Add Bull
+            + Add Bull Pair
           </button>
         </div>
 
@@ -210,7 +294,7 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
             Team Members (excluding owner)
           </p>
 
-          {form.members.map((m, i) => (
+          {form.teamMembers.map((m, i) => (
             <div key={i} className="flex gap-3">
               <input
                 placeholder="Member Name"
@@ -266,7 +350,7 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
           </button>
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !isFormValid}
             className="px-5 py-2 rounded-lg bg-orange-600 text-white disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save Team"}

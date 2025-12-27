@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { User, Phone, Lock, ArrowRight, Zap } from "lucide-react";
 import toast from "react-hot-toast";
 import { validateRegister } from "../../utils/validation";
-import { registerUser } from "../../services/auth.service";
+import { registerAPI } from "../../services/auth/index";
 
 export default function Register() {
   // LOCAL FORM STATE (CORRECT)
@@ -31,17 +31,15 @@ export default function Register() {
 
     try {
       setLoading(true);
-
-      await registerUser({
-        username: username.trim(),
-        mobileNumber,
-        password,
-      });
-
+      const response = await registerAPI(data);
+      const user = response.data.user;
+      console.log("user details registered  :", user);
       toast.success("Registration successful");
       navigate("/login");
     } catch (err) {
-      toast.error(err.message || "Registration failed");
+      const message =
+        err.response?.data?.message || err.message || "Registration failed";
+      toast.error(message);
     } finally {
       setLoading(false);
     }

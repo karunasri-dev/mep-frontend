@@ -1,6 +1,6 @@
 import { Check, X } from "lucide-react";
 
-export default function UserCard({ user, onApprove, onReject }) {
+export default function TeamCard({ user, onApprove, onReject }) {
   return (
     <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">

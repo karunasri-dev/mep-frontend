@@ -7,7 +7,7 @@ import {
   createEvent,
   updateEventDetails,
   deleteEvent,
-} from "../../api/event.api";
+} from "../../services/events/index";
 
 export default function EventManagement() {
   const [events, setEvents] = useState([]);

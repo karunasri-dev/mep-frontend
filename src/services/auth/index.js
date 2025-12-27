@@ -59,6 +59,12 @@ api.interceptors.response.use(
     originalRequest._retry = true;
     isRefreshing = true;
 
+    // Do NOT refresh for session check
+    if (originalRequest.url.includes("/api/auth/user")) {
+      window.dispatchEvent(new CustomEvent("auth-logout"));
+      return Promise.reject(err);
+    }
+
     try {
       console.log("🔄 Access token expired, refreshing...");
       const refreshResponse = await api.post("/api/auth/refresh");
@@ -80,11 +86,6 @@ api.interceptors.response.use(
       // Dispatch event to notify AuthContext of logout
       window.dispatchEvent(new CustomEvent("auth-logout"));
 
-      if (!isRedirecting && window.location.pathname !== "/login") {
-        isRedirecting = true;
-        window.location.href = "/login";
-      }
-
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
@@ -102,18 +103,27 @@ export const loginAPI = (data) => {
   return api.post(`/api/auth/login`, data);
 };
 
-export const logoutAPI = () => {
-  return api.post(`/api/auth/logout`);
-};
-
 export const forgotPasswordAPI = (mobileNumber) => {
   return api.post(`/api/auth/forgot-password`, { mobileNumber });
-};
-
-export const verifyUserAPI = () => {
-  return api.get(`/api/auth/user`);
 };
 
 export const changePasswordAPI = (data) => {
   return api.patch(`/api/auth/changePassword`, data);
 };
+
+export async function verifyUser() {
+  try {
+    const response = await api.get(`/api/auth/user`);
+    return response.data;
+  } catch (error) {
+    console.log(error.message);
+  }
+}
+
+export async function logoutAPI() {
+  try {
+    await api.post(`/api/auth/logout`);
+  } catch (error) {
+    console.log("Logout request failed", error.message);
+  }
+}

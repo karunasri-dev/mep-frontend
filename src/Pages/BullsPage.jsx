@@ -1,77 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useTeams } from "../context/TeamContext";
 import CreateTeam from "../components/CreateTeam";
 
 const BullsPage = () => {
   const { isLogin } = useAuth();
+  const { teams, fetchTeamsOnce, refreshTeams, loading } = useTeams();
+
   const [showForm, setShowForm] = useState(false);
   const [expanded, setExpanded] = useState(null);
 
-  const [teams, setTeams] = useState([
-    {
-      id: 1,
-      teamName: "Thunder Bulls",
-      bulls: [
-        {
-          name: "Bull A",
-          category: { type: "AGE_GROUP", value: "SENIOR" },
-        },
-        {
-          name: "Bull B",
-          category: { type: "AGE_GROUP", value: "JUNIOR" },
-        },
-      ],
-      teamMembers: [
-        { name: "Rajesh Kumar", role: "OWNER" },
-        { name: "Driver 1", role: "DRIVER" },
-      ],
-    },
-    {
-      id: 2,
-      teamName: "Mighty Warriors",
-      bulls: [
-        {
-          name: "Bull X",
-          category: { type: "DENTITION", value: "FOUR" },
-        },
-      ],
-      teamMembers: [{ name: "Suresh Reddy", role: "OWNER" }],
-    },
-    {
-      id: 3,
-      teamName: "Power Bulls",
-      bulls: [
-        {
-          name: "Bull C",
-          category: { type: "CLASS", value: "GENERAL" },
-        },
-        {
-          name: "Bull D",
-          category: { type: "AGE_GROUP", value: "JUNIOR" },
-        },
-      ],
-      teamMembers: [
-        { name: "Krishna Murthy", role: "OWNER" },
-        { name: "Helper 1", role: "HELPER" },
-      ],
-    },
-  ]);
+  useEffect(() => {
+    fetchTeamsOnce();
+    console.log(teams);
+  }, [fetchTeamsOnce]);
 
-  /* -------- HELPERS -------- */
+  if (loading) return <p>Loading...</p>;
 
   const getOwnerName = (team) =>
-    team.teamMembers.find((m) => m.role === "OWNER")?.name || "-";
+    team?.teamMembers?.find((m) => m.role === "OWNER")?.name || "-";
 
-  const formatCategory = (category) =>
-    `${category.type.replace("_", " ")} - ${category.value.replace("_", " ")}`;
-
-  /* -------- ADD TEAM FROM FORM -------- */
-
-  const addTeam = (team) => {
-    setTeams((p) => [
-      ...p,
-      { ...team, id: Date.now() }, // temp id for UI
-    ]);
+  const handleTeamCreated = async () => {
+    await refreshTeams(); // ✅ sync with backend
     setShowForm(false);
   };
 
@@ -89,7 +39,6 @@ const BullsPage = () => {
         )}
       </div>
 
-      {/* TABLE */}
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-gray-100">
@@ -104,38 +53,45 @@ const BullsPage = () => {
           <tbody className="divide-y">
             {teams.map((team) => (
               <>
-                <tr key={team.id}>
+                <tr key={team._id}>
                   <td className="px-4 py-3 font-medium">{team.teamName}</td>
                   <td className="px-4 py-3">{getOwnerName(team)}</td>
-                  <td className="px-4 py-3">{team.bulls.length}</td>
+                  <td className="px-4 py-3">{team.bullPairs?.length ?? 0}</td>
                   <td className="px-4 py-3 text-right">
                     <button
                       onClick={() =>
-                        setExpanded(expanded === team.id ? null : team.id)
+                        setExpanded(expanded === team._id ? null : team._id)
                       }
-                      className="text-orange-600 font-medium cursor-pointer"
+                      className="text-orange-600 font-medium"
                     >
-                      {expanded === team.id ? "Hide" : "View"}
+                      {expanded === team._id ? "Hide" : "View"}
                     </button>
                   </td>
                 </tr>
 
-                {expanded === team.id && (
+                {expanded === team._id && (
                   <tr>
-                    <td colSpan="4" className="bg-gray-50 px-6 py-4">
-                      <ul className="space-y-2">
-                        {team.bulls.map((b, idx) => (
-                          <li
-                            key={idx}
-                            className="flex justify-between border rounded-lg px-4 py-2"
-                          >
-                            <span>{b.name}</span>
-                            <span className="text-xs bg-gray-200 px-2 py-1 rounded">
-                              {b.category.value}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
+                    <td colSpan={4} className="bg-gray-50 px-6 py-4">
+                      {Array.isArray(team.bullPairs) &&
+                      team.bullPairs.length > 0 ? (
+                        <ul className="space-y-2">
+                          {team.bullPairs.map((pair, idx) => (
+                            <li key={pair._id || idx}>
+                              <span className="font-medium">
+                                {pair?.bullA?.name ?? "Unknown Bull"}
+                              </span>{" "}
+                              &{" "}
+                              <span className="font-medium">
+                                {pair?.bullB?.name ?? "Unknown Bull"}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-gray-500">
+                          No bulls registered for this team
+                        </p>
+                      )}
                     </td>
                   </tr>
                 )}
@@ -145,10 +101,14 @@ const BullsPage = () => {
         </table>
       </div>
 
-      {/* MODAL */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <CreateTeam onSubmit={addTeam} onCancel={() => setShowForm(false)} />
+        <div className="fixed inset-0 z-50 bg-black/40 overflow-y-auto">
+          <div className="min-h-screen flex items-start justify-center py-10">
+            <CreateTeam
+              onSuccess={handleTeamCreated}
+              onCancel={() => setShowForm(false)}
+            />
+          </div>
         </div>
       )}
     </div>

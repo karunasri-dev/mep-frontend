@@ -1,0 +1,196 @@
+import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { getTeamById, updateTeamRoster } from "@/services/team.service";
+import toast from "react-hot-toast";
+
+export default function EditTeam() {
+  const { teamId } = useParams();
+  const [team, setTeam] = useState(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const loadTeam = async () => {
+      try {
+        const data = await getTeamById(teamId);
+        setTeam(data);
+      } catch {
+        toast.error("Failed to load team");
+      }
+    };
+    loadTeam();
+  }, [teamId]);
+
+  if (!team) return <div>Loading…</div>;
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+      await updateTeamRoster(teamId, {
+        bullPairs: team.bullPairs,
+        teamMembers: team.teamMembers,
+      });
+      toast.success("Team updated successfully");
+    } catch {
+      toast.error("Update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-8">
+      <h1 className="text-xl font-semibold">Edit Team: {team.teamName}</h1>
+
+      <BullPairsSection team={team} setTeam={setTeam} />
+      <TeamMembersSection team={team} setTeam={setTeam} />
+
+      <button
+        onClick={handleSave}
+        disabled={saving}
+        className="px-4 py-2 bg-amber-600 text-white rounded"
+      >
+        {saving ? "Saving…" : "Save Changes"}
+      </button>
+    </div>
+  );
+}
+
+function BullPairsSection({ team, setTeam }) {
+  const updatePairName = (i, key, value) => {
+    const updated = [...team.bullPairs];
+    updated[i][key].name = value;
+    setTeam({ ...team, bullPairs: updated });
+  };
+
+  const addPair = () => {
+    setTeam({
+      ...team,
+      bullPairs: [
+        ...team.bullPairs,
+        {
+          bullA: { name: "" },
+          bullB: { name: "" },
+          category: { type: "DENTITION", value: "MILK" },
+        },
+      ],
+    });
+  };
+
+  return (
+    <section className="space-y-4">
+      <h2 className="font-medium">Bull Pairs</h2>
+
+      {team.bullPairs.map((pair, i) => {
+        const isNew = i >= team._originalBullPairCount;
+
+        return (
+          <div key={i} className="border p-3 rounded space-y-2">
+            <input
+              value={pair.bullA.name}
+              onChange={(e) => updatePairName(i, "bullA", e.target.value)}
+              placeholder="Bull A Name"
+              className="input"
+            />
+            <input
+              value={pair.bullB.name}
+              onChange={(e) => updatePairName(i, "bullB", e.target.value)}
+              placeholder="Bull B Name"
+              className="input"
+            />
+
+            {isNew ? (
+              <>
+                <select
+                  value={pair.category.type}
+                  onChange={(e) => {
+                    const updated = [...team.bullPairs];
+                    updated[i].category.type = e.target.value;
+                    setTeam({ ...team, bullPairs: updated });
+                  }}
+                >
+                  <option value="DENTITION">Dentition</option>
+                  <option value="AGE_GROUP">Age Group</option>
+                  <option value="CLASS">Class</option>
+                </select>
+
+                <input
+                  value={pair.category.value}
+                  onChange={(e) => {
+                    const updated = [...team.bullPairs];
+                    updated[i].category.value = e.target.value;
+                    setTeam({ ...team, bullPairs: updated });
+                  }}
+                  placeholder="Category Value"
+                />
+              </>
+            ) : (
+              <p className="text-sm text-gray-500">
+                Category locked after approval
+              </p>
+            )}
+          </div>
+        );
+      })}
+
+      <button onClick={addPair} className="text-sm text-amber-600">
+        + Add Bull Pair
+      </button>
+    </section>
+  );
+}
+
+function TeamMembersSection({ team, setTeam }) {
+  const updateMember = (i, field, value) => {
+    const updated = [...team.teamMembers];
+    updated[i][field] = value;
+    setTeam({ ...team, teamMembers: updated });
+  };
+
+  const addMember = () => {
+    setTeam({
+      ...team,
+      teamMembers: [
+        ...team.teamMembers,
+        { name: "", role: "HELPER", phone: "" },
+      ],
+    });
+  };
+
+  return (
+    <section className="space-y-4">
+      <h2 className="font-medium">Team Members</h2>
+
+      {team.teamMembers.map((m, i) => (
+        <div key={i} className="grid grid-cols-3 gap-2">
+          <input
+            value={m.name}
+            disabled={m.role === "OWNER"}
+            onChange={(e) => updateMember(i, "name", e.target.value)}
+            placeholder="Name"
+          />
+
+          <select
+            value={m.role}
+            disabled={m.role === "OWNER"}
+            onChange={(e) => updateMember(i, "role", e.target.value)}
+          >
+            <option value="CAPTAIN">Captain</option>
+            <option value="DRIVER">Driver</option>
+            <option value="TRAINER">Trainer</option>
+            <option value="HELPER">Helper</option>
+          </select>
+
+          {m.role === "OWNER" && (
+            <span className="text-xs text-gray-500">
+              Contact admin to change owner
+            </span>
+          )}
+        </div>
+      ))}
+
+      <button onClick={addMember} className="text-sm text-amber-600">
+        + Add Member
+      </button>
+    </section>
+  );
+}
