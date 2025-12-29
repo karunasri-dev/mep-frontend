@@ -3,36 +3,14 @@ import { Plus } from "lucide-react";
 import EventForm from "../components/Event/EventForm";
 import EventCard from "../components/Event/EventCard";
 import {
-  fetchAdminEvents,
+  getAllEvents,
   createEvent,
   updateEventDetails,
   deleteEvent,
-} from "../../services/events/index";
+} from "../../services/events/event.api";
 
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
-  // const [events, setEvents] = useState([
-  //   {
-  //     id: "1",
-  //     name: "Summer Bull Race 2025",
-  //     date: "2025-12-20",
-  //     location: "Mangalore Arena",
-  //     maxParticipants: 50,
-  //     registeredCount: 23,
-  //     prizeAmount: "₹5,00,000",
-  //     status: "upcoming",
-  //   },
-  //   {
-  //     id: "2",
-  //     name: "Winter Championship 2025",
-  //     date: "2026-01-15",
-  //     location: "Udupi Stadium",
-  //     maxParticipants: 40,
-  //     registeredCount: 12,
-  //     prizeAmount: "₹3,00,000",
-  //     status: "upcoming",
-  //   },
-  // ]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -48,7 +26,8 @@ export default function EventManagement() {
   const loadEvents = async () => {
     try {
       setLoading(true);
-      const res = await fetchAdminEvents();
+      const res = await getAllEvents();
+      // console.log("Event data.....", res.data);
       setEvents(res.data.data);
     } catch (err) {
       console.error("Failed to load events");
@@ -94,8 +73,8 @@ export default function EventManagement() {
       }
 
       setIsFormOpen(false);
-    } catch {
-      alert("Save failed");
+    } catch (err) {
+      console.log(err.message || err || "Saving failed");
     }
   };
 
@@ -122,11 +101,15 @@ export default function EventManagement() {
       </div>
 
       {isFormOpen && (
-        <EventForm
-          initialData={editingEvent}
-          onSubmit={handleSubmit}
-          onClose={() => setIsFormOpen(false)}
-        />
+        <div className="fixed inset-0 z-50 bg-black/40 overflow-y-auto">
+          <div className="min-h-screen flex items-start justify-center py-10">
+            <EventForm
+              initialData={editingEvent}
+              onSubmit={handleSubmit}
+              onClose={() => setIsFormOpen(false)}
+            />
+          </div>
+        </div>
       )}
 
       {loading ? (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from "react";
 import { useAuth } from "../context/AuthContext";
-import { getUserTeamsApi } from "../services/teams";
+import { getMyTeam } from "../services/teams";
 import { changePasswordAPI } from "../services/auth/index";
 import { logoutAPI } from "../services/auth/index";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +22,7 @@ const ProfilePage = () => {
   useEffect(() => {
     const fetchTeam = async () => {
       try {
-        const res = await getUserTeamsApi();
+        const res = await getMyTeam();
         if (res.data.length > 0) {
           setTeam(res.data[0]); // Assume first team
         }
