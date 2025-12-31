@@ -22,6 +22,7 @@ import BullsPage from "./Pages/BullsPage";
 import TeamDetailsPage from "./Pages/TeamDetailsPage";
 import DriversPage from "./Pages/DriversPage";
 import ProfilePage from "./Pages/ProfilePage";
+import EventPage from "./Pages/EventPage";
 
 // admin pages
 import Dashboard from "./admin/pages/DashboardLayout";
@@ -155,10 +156,7 @@ function AppContent() {
               path="/drivers"
               element={<DriversPage loading={loading} />}
             />
-            <Route
-              path="/events"
-              element={<GenericPage title="Events" loading={loading} />}
-            />
+            <Route path="/events" element={<EventPage loading={loading} />} />
             <Route
               path="/statistics"
               element={<GenericPage title="Statistics" loading={loading} />}

@@ -5,87 +5,83 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 const api = axios.create({
   baseURL: BASE_URL,
   withCredentials: true,
+  timeout: 15000,
 });
 
-// Refresh token promise to prevent multiple concurrent refresh attempts
+// Refresh control
 let isRefreshing = false;
-let failedQueue = [];
-let isRedirecting = false; // Prevent multiple redirects
+let queue = [];
 
-const processQueue = (error, token = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
+const resolveQueue = (error) => {
+  queue.forEach(({ resolve, reject }) => {
+    error ? reject(error) : resolve();
   });
-
-  failedQueue = [];
+  queue = [];
 };
 
-// Handle expired access token
+// Response interceptor
 api.interceptors.response.use(
-  (res) => res,
-  async (err) => {
-    const originalRequest = err.config;
-
-    // 1️⃣ If no response or not 401 → reject
-    if (!err.response || err.response.status !== 401) {
-      return Promise.reject(err);
+  (response) => response,
+  async (error) => {
+    // Hard guard: network / CORS / timeout
+    if (!error || !error.response) {
+      return Promise.reject(error);
     }
 
-    // 2️⃣ Do NOT retry auth endpoints
-    if (
-      originalRequest.url.includes("/api/auth/login") ||
-      originalRequest.url.includes("/api/auth/register") ||
-      originalRequest.url.includes("/api/auth/refresh")
-    ) {
-      return Promise.reject(err);
+    const { status, data } = error.response;
+    const originalRequest = error.config;
+
+    // Only care about 401
+    if (status !== 401 || !originalRequest) {
+      return Promise.reject(error);
     }
 
-    // 3️⃣ Prevent infinite retry
+    // Never retry auth endpoints
+    const AUTH_ROUTES = [
+      "/api/auth/login",
+      "/api/auth/register",
+      "/api/auth/refresh",
+    ];
+
+    if (AUTH_ROUTES.some((r) => originalRequest.url?.includes(r))) {
+      forceLogout();
+      return Promise.reject(error);
+    }
+
+    // Prevent infinite loop
     if (originalRequest._retry) {
-      return Promise.reject(err);
+      forceLogout();
+      return Promise.reject(error);
     }
 
-    // 4️⃣ Queue requests if refresh in progress
+    // Only refresh on explicit signal from backend
+    const REFRESH_CODES = new Set([
+      "TOKEN_EXPIRED",
+      "TOKEN_INVALIDATED",
+      "PASSWORD_CHANGED",
+      "NO_ACCESS_TOKEN",
+    ]);
+    if (!REFRESH_CODES.has(data?.code)) {
+      return Promise.reject(error);
+    }
+
+    // Queue requests while refresh is running
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
-        failedQueue.push({ resolve, reject });
+        queue.push({ resolve, reject });
       }).then(() => api(originalRequest));
     }
 
     originalRequest._retry = true;
     isRefreshing = true;
 
-    // Do NOT refresh for session check
-    if (originalRequest.url.includes("/api/auth/user")) {
-      window.dispatchEvent(new CustomEvent("auth-logout"));
-      return Promise.reject(err);
-    }
-
     try {
-      console.log("🔄 Access token expired, refreshing...");
-      const refreshResponse = await api.post("/api/auth/refresh");
-
-      // Dispatch custom event to notify AuthContext of successful refresh
-      window.dispatchEvent(
-        new CustomEvent("auth-refreshed", {
-          detail: { user: refreshResponse.data.data.user },
-        })
-      );
-
-      processQueue(null);
+      await refreshToken();
+      resolveQueue();
       return api(originalRequest);
     } catch (refreshError) {
-      processQueue(refreshError);
-
-      console.log("❌ Refresh failed. Logging out.");
-
-      // Dispatch event to notify AuthContext of logout
-      window.dispatchEvent(new CustomEvent("auth-logout"));
-
+      resolveQueue(refreshError);
+      forceLogout();
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
@@ -93,14 +89,29 @@ api.interceptors.response.use(
   }
 );
 
-export default api;
+// Auth APIs
+export const registerAPI = (data) => api.post("/api/auth/register", data);
 
-export const registerAPI = (data) => {
-  return api.post(`/api/auth/register`, data);
+export const loginAPI = (data) => api.post("/api/auth/login", data);
+
+export const logoutAPI = async () => {
+  try {
+    await api.post("/api/auth/logout");
+  } finally {
+    forceLogout();
+  }
 };
 
-export const loginAPI = (data) => {
-  return api.post(`/api/auth/login`, data);
+export const verifyUser = async () => {
+  const res = await api.get("/api/auth/user");
+  return res.data;
+};
+
+const refreshToken = async () => {
+  const res = await api.post("/api/auth/refresh");
+  if (!res?.data?.ok) {
+    throw new Error("Refresh failed");
+  }
 };
 
 export const forgotPasswordAPI = (mobileNumber) => {
@@ -111,19 +122,16 @@ export const changePasswordAPI = (data) => {
   return api.patch(`/api/auth/changePassword`, data);
 };
 
-export async function verifyUser() {
-  try {
-    const response = await api.get(`/api/auth/user`);
-    return response.data;
-  } catch (error) {
-    console.log(error.message);
-  }
-}
+// Forced logout (cross-tab safe)
+const forceLogout = () => {
+  localStorage.setItem("force-logout", Date.now().toString());
+  window.dispatchEvent(new Event("auth-logout"));
+};
 
-export async function logoutAPI() {
-  try {
-    await api.post(`/api/auth/logout`);
-  } catch (error) {
-    console.log("Logout request failed", error.message);
+window.addEventListener("storage", (e) => {
+  if (e.key === "force-logout") {
+    window.dispatchEvent(new Event("auth-logout"));
   }
-}
+});
+
+export default api;

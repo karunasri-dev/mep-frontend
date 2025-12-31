@@ -40,7 +40,12 @@ export const updateTeamStatusApi = (teamId, status) =>
 
 export const deleteTeamApi = (teamId) => api.delete(`/api/teams/${teamId}`);
 
-export const getMyTeam = () => api.get("/api/teams/my-teams");
+export const getMyTeam = async () => {
+  console.log("get my team api called");
+  const res = await api.get("/api/teams/my-team");
+  console.log("Response of get my teams", res);
+  return res.data;
+};
 
 export const updateTeamApi = (teamId, teamData) =>
   api.put(`/api/teams/${teamId}`, teamData);
