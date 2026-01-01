@@ -1,9 +1,19 @@
 import { ShimmerCardH } from "../components/ShimmerEffect";
 import { Link, useNavigate } from "react-router-dom";
+import { useTeams } from "../context/TeamContext";
+import { useEffect } from "react";
 
 const TeamsPage = ({ loading }) => {
   const navigate = useNavigate();
-  if (loading) {
+  const { teams, loading: contextLoading, fetchTeamsOnce } = useTeams();
+
+  useEffect(() => {
+    fetchTeamsOnce();
+  }, []);
+
+  const isLoading = loading || contextLoading;
+
+  if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {[1, 2, 3].map((i) => (
@@ -13,11 +23,12 @@ const TeamsPage = ({ loading }) => {
     );
   }
 
-  const teams = [
-    { name: "RK Bulls", bulls: 10, category: "Senior" },
-    { name: "BSR Bulls", bulls: 3, category: "Senior" },
-    { name: "PSK & PSC Bulls", bulls: 4, category: "Junior" },
-  ];
+  // Helper to format categories
+  const getCategories = (team) => {
+    if (!team.bullPairs || team.bullPairs.length === 0) return "N/A";
+    const categories = new Set(team.bullPairs.map((bp) => bp.category.value));
+    return Array.from(categories).join(", ").replace(/_/g, " ");
+  };
 
   return (
     <div className="space-y-10 max-w-7xl mx-auto">
@@ -34,38 +45,49 @@ const TeamsPage = ({ loading }) => {
         <h2 className="text-3xl font-serif font-semibold text-stone-800">
           Active Teams
         </h2>
+        <span className="text-stone-600 font-medium">
+          Total: {teams.length}
+        </span>
       </div>
 
       {/* Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {teams.map((team, idx) => (
-          <div
-            key={idx}
-            onClick={() => navigate(`/teams/${idx}`)}
-            className="bg-[#fbf6ee] border border-stone-300 p-6 hover:border-amber-600 transition"
-          >
-            <div className="space-y-3">
-              <h3 className="text-xl font-serif text-stone-800 tracking-wide">
-                {team.name}
-              </h3>
+      {teams.length === 0 ? (
+        <div className="text-center text-gray-500 py-10">
+          No active teams found.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {teams.map((team) => (
+            <div
+              key={team._id}
+              onClick={() => navigate(`/teams/${team._id}`)}
+              className="bg-[#fbf6ee] border border-stone-300 p-6 hover:border-amber-600 transition cursor-pointer"
+            >
+              <div className="space-y-3">
+                <h3 className="text-xl font-serif text-stone-800 tracking-wide">
+                  {team.teamName}
+                </h3>
 
-              <div className="h-px bg-amber-300 w-12" />
+                <div className="h-px bg-amber-300 w-12" />
 
-              <p className="text-sm text-stone-600">
-                Category:{" "}
-                <span className="font-medium text-emerald-700">
-                  {team.category}
-                </span>
-              </p>
+                <p className="text-sm text-stone-600">
+                  Category:{" "}
+                  <span className="font-medium text-emerald-700">
+                    {getCategories(team)}
+                  </span>
+                </p>
 
-              <p className="text-sm text-stone-600">
-                Total Bulls:{" "}
-                <span className="font-medium text-stone-800">{team.bulls}</span>
-              </p>
+                <p className="text-sm text-stone-600">
+                  Total Bulls:{" "}
+                  <span className="font-medium text-stone-800">
+                    {team.bullPairs ? team.bullPairs.length * 2 : 0}
+                  </span>
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

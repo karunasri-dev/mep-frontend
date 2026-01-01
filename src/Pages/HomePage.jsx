@@ -4,6 +4,7 @@ import Navigation from "../components/Navigation";
 import DashboardCard from "../components/DashboardCard";
 import { useTeams } from "../context/TeamContext";
 import { useNavigate } from "react-router-dom";
+import { getAllEvents } from "../services/events/event.api";
 import {
   UserIcon,
   History,
@@ -21,13 +22,13 @@ const WHATSAPP_URL = "https://wa.me/9154143819";
 const HomePage = ({ loading }) => {
   const navigate = useNavigate();
   const { teams } = useTeams();
-  const activeBullsCount = teams?.bullPairs?.reduce(
-    (acc, bullPair) => acc + bullPair.name,
-    0
-  );
-  if (teams) {
-    console.log("teams", teams);
-  }
+  const activeBullsCount =
+    teams.reduce((acc, team) => acc + team.bullPairs.length, 0) * 2;
+
+  const events = getAllEvents();
+
+  console.log("events", events.data);
+  const eventsCount = events?.data?.data?.length;
 
   if (loading) {
     return (
@@ -42,7 +43,7 @@ const HomePage = ({ loading }) => {
   const cards = [
     {
       title: "Active Owners",
-      value: teams?.length || 0,
+      value: teams?.length,
       icon: UserIcon,
       accentBorder: "border-emerald-600",
       bgTint: "bg-emerald-50",
@@ -59,7 +60,7 @@ const HomePage = ({ loading }) => {
     },
     {
       title: "Upcoming Events",
-      value: 4, // replace with API later
+      value: eventsCount || 4, // replace with API later
       icon: CalendarDays,
       accentBorder: "border-blue-600",
       bgTint: "bg-blue-50",

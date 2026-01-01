@@ -1,83 +1,119 @@
-import { Link, useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import { getTeamByIdApi } from "../services/teams/index";
 
-const mockTeams = [
-  {
-    id: "0",
-    name: "RK Bulls",
-    category: "Senior",
-    totalBulls: 10,
-    bulls: [
-      { name: "Bull 1", type: "Senior" },
-      { name: "Bull 2", type: "Senior" },
-    ],
-  },
-  {
-    id: "1",
-    name: "BSR Bulls",
-    category: "Senior",
-    totalBulls: 3,
-    bulls: [{ name: "Bull A", type: "Senior" }],
-  },
-];
+// Reuse Admin Components
+import TeamHero from "../admin/components/ActiveTeams/TeamHero";
+import TeamStats from "../admin/components/ActiveTeams/TeamStats";
+import RecentEvents from "../admin/components/ActiveTeams/RecentEvents";
+import TeamMembers from "../admin/components/ActiveTeams/TeamMembers";
+import BullInfo from "../admin/components/ActiveTeams/BullInfo";
 
-const TeamDetailsPage = () => {
+export default function TeamDetailsPage() {
   const { id } = useParams();
-  console.log("teamId:", id);
-  const team = mockTeams.find((t) => t.id === id);
+  const navigate = useNavigate();
+  const [team, setTeam] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  if (!team) {
-    return <p className="text-stone-700">Team not found</p>;
+  useEffect(() => {
+    if (id) {
+      fetchTeamDetails();
+    }
+  }, [id]);
+
+  const fetchTeamDetails = async () => {
+    try {
+      setLoading(true);
+      const res = await getTeamByIdApi(id);
+      const teamData = res.data.data;
+      
+      // Adapt Backend Data to UI Components
+      const owner = teamData.teamMembers?.find(m => m.role === "OWNER")?.name || "Unknown";
+      const bullNames = teamData.bullPairs?.map(bp => `${bp.bullA.name} & ${bp.bullB.name}`).join(", ") || "No Bulls";
+      
+      const adaptedTeam = {
+        id: teamData._id,
+        name: teamData.teamName,
+        owner: owner,
+        bullName: bullNames,
+        location: "Mangalore, Karnataka", // Placeholder as location isn't in Team model
+        established: new Date(teamData.createdAt).getFullYear().toString(),
+        members: teamData.teamMembers?.length || 0,
+        totalEvents: 0, // Placeholder
+        wins: 0, // Placeholder
+        podiums: 0, // Placeholder
+        image: "🐂",
+        description: teamData.info || "No description available for this team.",
+        stats: {
+          winRate: "0%",
+          bestTime: "N/A",
+          totalPrizes: "₹0",
+          currentRank: "N/A",
+        },
+        recentEvents: [], // Placeholder
+        teamMembers: teamData.teamMembers?.map(m => ({
+          name: m.name,
+          role: m.role
+        })) || []
+      };
+
+      setTeam(adaptedTeam);
+    } catch (err) {
+      console.error("Failed to fetch team details", err);
+      setError("Failed to load team details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 flex justify-center items-center">
+        <p className="text-gray-500">Loading team details...</p>
+      </div>
+    );
+  }
+
+  if (error || !team) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-6 flex flex-col justify-center items-center gap-4">
+        <p className="text-red-500">{error || "Team not found"}</p>
+        <button 
+          onClick={() => navigate("/teams")}
+          className="text-blue-600 hover:underline"
+        >
+          Go back to Teams
+        </button>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10">
-      {/* Back */}
-      <Link to="/teams" className="text-sm text-amber-700 hover:text-amber-900">
-        ← Back to Teams
-      </Link>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-5xl mx-auto">
+        <button
+          onClick={() => navigate("/teams")}
+          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Back to Teams
+        </button>
 
-      {/* Header */}
-      <div className="border-b border-amber-200 pb-4">
-        <h1 className="text-4xl font-serif text-stone-800">{team.name}</h1>
-        <p className="text-stone-600 mt-1">
-          Category:{" "}
-          <span className="font-medium text-emerald-700">{team.category}</span>
-        </p>
-      </div>
+        <TeamHero team={team} />
+        <TeamStats stats={team.stats} />
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-        <Stat label="Total Bulls" value={team.totalBulls} />
-        <Stat label="Category" value={team.category} />
-      </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <RecentEvents events={team.recentEvents} />
+          </div>
 
-      {/* Bulls List */}
-      <div>
-        <h2 className="text-2xl font-serif text-stone-800 mb-4">
-          Bulls Details
-        </h2>
-
-        <div className="border border-stone-300 divide-y">
-          {team.bulls.map((bull, idx) => (
-            <div
-              key={idx}
-              className="flex justify-between px-4 py-3 bg-[#fbf6ee]"
-            >
-              <span className="text-stone-800">{bull.name}</span>
-              <span className="text-sm text-stone-600">{bull.type}</span>
-            </div>
-          ))}
+          <TeamMembers members={team.teamMembers} />
         </div>
+
+        <BullInfo team={team} />
       </div>
     </div>
   );
-};
-
-const Stat = ({ label, value }) => (
-  <div className="border border-stone-300 bg-[#fbf6ee] p-4">
-    <p className="text-sm text-stone-600">{label}</p>
-    <p className="text-2xl font-serif text-stone-800">{value}</p>
-  </div>
-);
-
-export default TeamDetailsPage;
+}
