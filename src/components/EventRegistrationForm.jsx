@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { X, GripHorizontal } from "lucide-react";
 
 export default function EventRegistrationForm({
@@ -27,7 +27,7 @@ export default function EventRegistrationForm({
   if (!event || !team) return null;
 
   console.log("teamMembers", teamMembers);
-  const owner = team.teamMembers?.find((m) => m.role === "OWNER");
+  const owner = team?.teamMembers?.find((m) => m.role === "OWNER");
 
   // Helpers
 
@@ -128,39 +128,35 @@ export default function EventRegistrationForm({
   // Render
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-4">
       <div
         ref={modalRef}
-        className="bg-white w-full max-w-xl rounded-lg shadow-lg"
+        className="bg-white w-full max-w-xl rounded-xl shadow-xl border border-stone-200"
         style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div
-          className="flex items-center justify-between px-6 py-4 border-b cursor-move select-none"
+          className="flex items-center justify-between px-6 py-4 border-b border-stone-200 bg-stone-50 cursor-move select-none"
           onMouseDown={handleDragStart}
         >
           <div className="flex items-center gap-2">
-            <GripHorizontal size={18} className="text-gray-400" />
-            <h3 className="font-semibold">Register for {event.title}</h3>
+            <GripHorizontal size={18} className="text-stone-400" />
+            <h3 className="font-serif font-medium text-stone-800">Register for {event.title}</h3>
           </div>
-          <button onClick={onClose}>
-            <X />
+          <button onClick={onClose} className="p-2 rounded-lg hover:bg-stone-100 text-stone-600">
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {/* Team info */}
-          <div className="bg-gray-50 p-3 rounded text-sm">
+          <div className="bg-stone-50 p-3 rounded-lg text-sm border border-stone-200">
             <b>Team:</b> {team.teamName}
             <br />
             <b>Owner:</b> {owner?.name || "—"}
           </div>
 
-          {/* Captain */}
           <div>
-            <label className="block text-sm font-medium mb-1">
+            <label className="block text-sm font-medium mb-1 text-stone-700">
               Captain Name
             </label>
             <input
@@ -171,10 +167,9 @@ export default function EventRegistrationForm({
             />
           </div>
 
-          {/* Bull pairs */}
           <div>
-            <p className="font-medium text-sm mb-1">Bull Pairs</p>
-            <div className="max-h-[120px] overflow-y-auto border rounded p-2 space-y-2">
+            <p className="font-medium text-sm mb-1 text-stone-700">Bull Pairs</p>
+            <div className="max-h-[120px] overflow-y-auto border border-stone-200 rounded-lg p-2 space-y-2">
               {bullPairs.map((b) => (
                 <div key={b._id} className="flex items-center gap-2">
                   <input
@@ -184,7 +179,7 @@ export default function EventRegistrationForm({
                       toggleSelection(b._id, setSelectedBullPairs)
                     }
                   />
-                  <span className="text-sm">
+                  <span className="text-sm text-stone-700">
                     {b.bullA.name} & {b.bullB.name} — {b.category.value}
                   </span>
                 </div>
@@ -192,10 +187,9 @@ export default function EventRegistrationForm({
             </div>
           </div>
 
-          {/* Team members */}
           <div>
-            <p className="font-medium text-sm mb-1">Team Members</p>
-            <div className="max-h-[120px] overflow-y-auto border rounded p-2 space-y-2">
+            <p className="font-medium text-sm mb-1 text-stone-700">Team Members</p>
+            <div className="max-h-[120px] overflow-y-auto border border-stone-200 rounded-lg p-2 space-y-2">
               {teamMembers.map((m) => (
                 <div key={m._id} className="flex items-center gap-2">
                   <input
@@ -203,7 +197,7 @@ export default function EventRegistrationForm({
                     checked={selectedMembers.includes(m._id)}
                     onChange={() => toggleSelection(m._id, setSelectedMembers)}
                   />
-                  <span className="text-sm">
+                  <span className="text-sm text-stone-700">
                     {m.name} — {m.role}
                   </span>
                 </div>
@@ -211,15 +205,13 @@ export default function EventRegistrationForm({
             </div>
           </div>
 
-          {/* Error */}
           {error && <p className="text-sm text-red-600">{error}</p>}
 
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <button type="button" onClick={onClose} disabled={submitting}>
+          <div className="flex justify-end gap-3 pt-4 border-t border-stone-200">
+            <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg text-stone-600 hover:bg-stone-50">
               Cancel
             </button>
-            <button type="submit" disabled={submitting}>
+            <button type="submit" disabled={submitting} className="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 shadow-sm">
               {submitting ? "Submitting..." : "Submit Registration"}
             </button>
           </div>

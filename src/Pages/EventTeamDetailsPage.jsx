@@ -68,19 +68,22 @@ export default function EventTeamDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex justify-center items-center">
-        <p className="text-gray-500">Loading team details...</p>
+      <div className="min-h-screen bg-[#fbf6ee] flex justify-center items-center">
+        <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
+          <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full mb-4"></div>
+          <p className="text-stone-500 font-medium">Loading team details...</p>
+        </div>
       </div>
     );
   }
 
   if (error || !team) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6 flex flex-col justify-center items-center gap-4">
-        <p className="text-red-500">{error || "Team not found"}</p>
+      <div className="min-h-screen bg-[#fbf6ee] flex flex-col justify-center items-center gap-4">
+        <p className="text-red-600">{error || "Team not found"}</p>
         <button 
           onClick={() => navigate(`/events/${eventId}`)}
-          className="text-blue-600 hover:underline"
+          className="text-amber-700 hover:underline"
         >
           Go back to Event
         </button>
@@ -89,11 +92,11 @@ export default function EventTeamDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-[#fbf6ee] py-8">
+      <div className="max-w-7xl mx-auto px-4">
         <button
           onClick={() => navigate(`/events/${eventId}`)}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6 transition-colors"
+          className="flex items-center gap-2 text-stone-600 hover:text-amber-700 mb-6 transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
           Back to Event

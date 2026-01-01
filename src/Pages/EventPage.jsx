@@ -30,7 +30,7 @@ export default function EventsPage() {
         } catch {
           setTeam(null);
         }
-      } catch (err) {
+      } catch {
         setError("Failed to load events");
       } finally {
         setLoading(false);
@@ -55,7 +55,14 @@ export default function EventsPage() {
   // RENDER GUARDS
 
   if (loading) {
-    return <p className="text-gray-500">Loading events…</p>;
+    return (
+      <div className="min-h-screen bg-[#fbf6ee] flex justify-center items-center">
+        <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
+          <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full mb-4"></div>
+          <p className="text-stone-500 font-medium">Loading events...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
@@ -63,17 +70,20 @@ export default function EventsPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="min-h-screen bg-[#fbf6ee] py-8">
+      <div className="max-w-7xl mx-auto px-4 space-y-6">
       {/* No team warning */}
       {!team && (
-        <div className="bg-yellow-50 border border-yellow-300 p-3 rounded text-sm">
-          You must be part of an <b>approved team</b> to register for events.
+        <div className="bg-amber-50 border border-amber-200 p-3 rounded-lg text-sm text-stone-800">
+          You must be part of an approved team to register for events.
         </div>
       )}
 
       {/* Events */}
       {events.length === 0 ? (
-        <p className="text-gray-500">No upcoming events</p>
+        <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
+          <p className="text-stone-500 font-medium">No upcoming events</p>
+        </div>
       ) : (
         events.map((event) => (
           <UserEventCard
@@ -96,6 +106,7 @@ export default function EventsPage() {
           onClose={() => setSelectedEvent(null)}
         />
       )}
+      </div>
     </div>
   );
 }

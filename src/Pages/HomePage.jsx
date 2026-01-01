@@ -74,6 +74,8 @@ const HomePage = ({ loading }) => {
       accentBorder: "border-amber-600",
       bgTint: "bg-amber-50",
       iconColor: "text-amber-700",
+      pulse: true,
+
       onClick: () => window.open(YOUTUBE_LIVE_URL, "_blank"),
     },
     {
@@ -109,15 +111,17 @@ const HomePage = ({ loading }) => {
       <Header />
       <Navigation />
 
-      <div className="bg-stone-100 p-10 space-y-6 min-h-screen">
-        <h2 className="text-2xl font-serif text-stone-800">
-          Dashboard Overview
-        </h2>
+      <div className="min-h-screen bg-[#fbf6ee]">
+        <div className="max-w-7xl mx-auto p-10 space-y-6">
+          <h2 className="text-2xl font-serif text-stone-800">
+            Dashboard Overview
+          </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {cards.map((card, idx) => (
-            <DashboardCard key={idx} {...card} />
-          ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {cards.map((card, idx) => (
+              <DashboardCard key={idx} {...card} />
+            ))}
+          </div>
         </div>
       </div>
     </>

@@ -100,49 +100,46 @@ export default function ActiveTeams() {
       status: "active",
       image: "🔥",
     },
-    {
-      id: "8",
-      name: "Golden Eagles",
-      owner: "Mohan Bhandary",
-      bullName: "Eagle",
-      location: "Puttur",
-      members: 8,
-      eventsParticipated: 14,
-      wins: 6,
-      status: "active",
-      image: "🦅",
-    },
   ];
 
-  const filteredTeams = teams.filter(
-    (team) =>
-      team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      team.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      team.bullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      team.location.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredTeams = teams.filter((team) =>
+    team.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <TeamsHeader onBack={onBack} activeCount={teams.length} />
-
-      <TeamsSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-
-      {/* Teams Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredTeams.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-gray-500">
-            No teams found matching your search
+    <div className="min-h-screen bg-[#fbf6ee] p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-serif text-stone-800 font-medium">
+              Active Teams
+            </h1>
+            <p className="text-stone-600 mt-1">
+              Manage and view all registered teams
+            </p>
           </div>
-        ) : (
-          filteredTeams.map((team) => (
+          <button
+            onClick={onBack}
+            className="px-4 py-2 text-amber-700 hover:bg-amber-50 rounded-lg transition-colors font-medium"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
+
+        {/* Search Bar Wrapper */}
+        <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+          <TeamsSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredTeams.map((team) => (
             <TeamCard
               key={team.id}
               team={team}
               onClick={() => onNavigateToTeamDetails(team.id)}
             />
-          ))
-        )}
+          ))}
+        </div>
       </div>
     </div>
   );

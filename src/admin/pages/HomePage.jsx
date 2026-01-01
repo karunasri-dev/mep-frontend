@@ -24,10 +24,7 @@ export default function Home() {
       value: "24",
       subtitle: "Teams currently registered",
       icon: Users,
-      gradient: "from-blue-500 to-blue-700",
-      bgPattern: "from-blue-50 to-blue-100",
       onClick: onNavigateToTeams,
-      pulse: false,
     },
     {
       id: "total-events",
@@ -35,8 +32,6 @@ export default function Home() {
       value: "12",
       subtitle: "Events this season",
       icon: Calendar,
-      gradient: "from-purple-500 to-purple-700",
-      bgPattern: "from-purple-50 to-purple-100",
     },
     {
       id: "upcoming-events",
@@ -44,8 +39,6 @@ export default function Home() {
       value: "5",
       subtitle: "Next 30 days",
       icon: TrendingUp,
-      gradient: "from-green-500 to-green-700",
-      bgPattern: "from-green-50 to-green-100",
     },
     {
       id: "live-events",
@@ -53,8 +46,6 @@ export default function Home() {
       value: "2",
       subtitle: "Currently ongoing",
       icon: Radio,
-      gradient: "from-red-500 to-red-700",
-      bgPattern: "from-red-50 to-red-100",
       pulse: true,
     },
     {
@@ -63,8 +54,6 @@ export default function Home() {
       value: "1.2K",
       subtitle: "Total participants",
       icon: BarChart3,
-      gradient: "from-orange-500 to-orange-700",
-      bgPattern: "from-orange-50 to-orange-100",
     },
     {
       id: "champions",
@@ -72,8 +61,6 @@ export default function Home() {
       value: "8",
       subtitle: "Winners this season",
       icon: Award,
-      gradient: "from-amber-500 to-amber-700",
-      bgPattern: "from-amber-50 to-amber-100",
     },
   ];
 
@@ -82,25 +69,21 @@ export default function Home() {
       action: "New team registration",
       team: "Thunder Riders",
       time: "5 minutes ago",
-      color: "bg-blue-500",
     },
     {
       action: "Event completed",
       team: "Summer Bull Race",
       time: "2 hours ago",
-      color: "bg-green-500",
     },
     {
       action: "Champion updated",
       team: "Lightning Storm",
       time: "5 hours ago",
-      color: "bg-amber-500",
     },
     {
       action: "User approved",
       team: "Rajesh Kumar",
       time: "1 day ago",
-      color: "bg-purple-500",
     },
   ];
 
@@ -108,8 +91,8 @@ export default function Home() {
     <div>
       {/* Hero */}
       <div className="mb-12 text-center">
-        <h1 className="text-gray-900 mb-4">Welcome to Bull Race Management</h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
+        <h1 className="text-4xl font-serif font-medium text-stone-900 mb-4">Welcome to Bull Race Management</h1>
+        <p className="text-stone-600 max-w-2xl mx-auto text-lg">
           Monitor and manage all aspects of your bull racing events from this
           comprehensive dashboard.
         </p>
@@ -117,73 +100,38 @@ export default function Home() {
 
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {cards.map((card) => {
-          const Icon = card.icon;
-
-          return (
-            <div
-              key={card.id}
-              onClick={card.onClick}
-              className={`border border-stone-300 bg-white p-6
-          hover:border-amber-600 transition
-          ${card.onClick ? "cursor-pointer" : ""}`}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-stone-700 font-medium">{card.title}</h3>
-
-                <Icon className="w-5 h-5 text-amber-700" />
-              </div>
-
-              {/* Value */}
-              <div className="text-4xl font-serif text-stone-900 mb-1">
-                {card.value}
-              </div>
-
-              {/* Subtitle */}
-              <p className="text-sm text-stone-500">{card.subtitle}</p>
-
-              {/* Indicator */}
-              {card.onClick && (
-                <p className="mt-4 text-sm text-amber-700 font-medium">
-                  View details →
-                </p>
-              )}
-              {card.pulse && (
-                <span className="text-xs text-red-700 font-medium">● LIVE</span>
-              )}
-            </div>
-          );
-        })}
+        {cards.map((card) => (
+          <CardItem key={card.id} {...card} />
+        ))}
       </div>
 
       {/* Quick Stats */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <QuickStat
-          label="Pending Approvals"
-          value="18 Users"
-          icon="⏳"
-          color="yellow"
-        />
-        <QuickStat
-          label="Total Prize Pool"
-          value="₹42,00,000"
-          icon="💰"
-          color="green"
-        />
-        <QuickStat
-          label="Completion Rate"
-          value="94.5%"
-          icon="📊"
-          color="blue"
-        />
+      <div className="mt-12">
+        <h3 className="text-xl font-serif text-stone-800 font-medium mb-6 px-1">Quick Overview</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <QuickStat
+            label="Pending Approvals"
+            value="18 Users"
+            icon="⏳"
+          />
+          <QuickStat
+            label="Total Prize Pool"
+            value="₹42,00,000"
+            icon="💰"
+          />
+          <QuickStat
+            label="Completion Rate"
+            value="94.5%"
+            icon="📊"
+          />
+        </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="mt-12 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-gray-900 mb-4">Recent Activity</h3>
+      <div className="mt-12 bg-white rounded-xl shadow-sm border border-stone-200 p-8">
+        <h3 className="text-xl font-serif text-stone-800 font-medium mb-6">Recent Activity</h3>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {activities.map((a, i) => (
             <RecentActivityItem key={i} {...a} />
           ))}

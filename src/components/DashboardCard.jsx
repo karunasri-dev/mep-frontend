@@ -9,6 +9,7 @@ const DashboardCard = ({
   bgTint,
   iconColor,
   to,
+  pulse,
   onClick,
   expandable = false,
   actions = [],
@@ -22,6 +23,7 @@ const DashboardCard = ({
   };
 
   const Wrapper = to ? Link : "div";
+  const iconClass = iconColor ? iconColor : "text-amber-700";
 
   return (
     <Wrapper
@@ -42,7 +44,19 @@ const DashboardCard = ({
             </p>
           )}
         </div>
-        <Icon className={`w-6 h-6 ${iconColor}`} />
+
+        {/* <Icon className={`w-6 h-6 ${iconClass}`} /> */}
+        {pulse ? (
+          <div className="relative w-12 h-12">
+            <span
+              className="absolute inset-0 rounded-full bg-red-500/40 animate-ping"
+              style={{ animationDuration: "3s" }}
+            />
+            <Icon className={`relative z-10 w-12 h-12 ${iconClass}`} />
+          </div>
+        ) : (
+          <Icon className={`w-6 h-6 ${iconClass}`} />
+        )}
       </div>
 
       {open && actions.length > 0 && (

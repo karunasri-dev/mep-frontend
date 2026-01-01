@@ -2,16 +2,16 @@ import { Edit2, Trophy } from "lucide-react";
 
 export default function ChampionCard({ champion, onEdit }) {
   return (
-    <div className="border-2 border-amber-200 rounded-lg p-6 bg-linear-to-br from-amber-50 to-white hover:shadow-lg transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-amber-600 rounded-full flex items-center justify-center">
-            <Trophy className="w-6 h-6 text-white" />
+    <div className="bg-white border border-stone-200 rounded-xl p-6 hover:border-amber-400 hover:shadow-md transition-all duration-300">
+      <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center border border-amber-100">
+            <Trophy className="w-6 h-6 text-amber-600" />
           </div>
 
           <div>
-            <h3 className="text-gray-900">{champion.eventName}</h3>
-            <p className="text-gray-600 text-sm">
+            <h3 className="text-lg font-serif font-medium text-stone-900">{champion.eventName}</h3>
+            <p className="text-stone-500 text-sm">
               {new Date(champion.eventDate).toLocaleDateString()}
             </p>
           </div>
@@ -19,14 +19,14 @@ export default function ChampionCard({ champion, onEdit }) {
 
         <button
           onClick={onEdit}
-          className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-white"
+          className="flex items-center gap-2 px-3 py-2 border border-stone-200 rounded-lg hover:bg-stone-50 text-stone-600 hover:text-stone-900 transition-colors text-sm font-medium"
         >
           <Edit2 className="w-4 h-4" />
           Edit
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <Field label="Winner" value={champion.winnerName} />
         <Field label="Bull" value={champion.bullName} />
         <Field label="Time" value={champion.raceTime} />
@@ -34,9 +34,9 @@ export default function ChampionCard({ champion, onEdit }) {
       </div>
 
       {champion.notes && (
-        <div className="bg-white rounded-lg p-3 border border-gray-200">
-          <p className="text-gray-500 text-sm mb-1">Notes</p>
-          <p className="text-gray-700">{champion.notes}</p>
+        <div className="bg-stone-50 rounded-lg p-4 border border-stone-100">
+          <p className="text-stone-500 text-xs font-medium uppercase tracking-wide mb-1">Notes</p>
+          <p className="text-stone-700 text-sm">{champion.notes}</p>
         </div>
       )}
     </div>
@@ -45,9 +45,9 @@ export default function ChampionCard({ champion, onEdit }) {
 
 function Field({ label, value }) {
   return (
-    <div className="bg-white rounded-lg p-3 border border-gray-200">
-      <p className="text-gray-500 text-sm mb-1">{label}</p>
-      <p className="text-gray-900">{value}</p>
+    <div className="bg-stone-50/50 rounded-lg p-3 border border-stone-100">
+      <p className="text-stone-500 text-xs font-medium uppercase tracking-wide mb-1">{label}</p>
+      <p className="text-stone-900 font-medium">{value}</p>
     </div>
   );
 }

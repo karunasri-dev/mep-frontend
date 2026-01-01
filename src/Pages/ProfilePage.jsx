@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { getMyTeam } from "../services/teams";
 import { changePasswordAPI } from "../services/auth/index";
@@ -89,44 +89,43 @@ const ProfilePage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#fbf6ee] flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading profile...</p>
+          <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full mx-auto"></div>
+          <p className="mt-4 text-stone-600">Loading profile...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-[#fbf6ee] py-8">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow-lg rounded-lg overflow-hidden">
-          {/* Header */}
-          <div className="bg-orange-600 px-6 py-4">
-            <h1 className="text-2xl font-bold text-white">My Profile</h1>
+        <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-stone-200 bg-stone-50">
+            <h1 className="text-2xl font-serif font-medium text-stone-800">My Profile</h1>
           </div>
 
           <div className="p-6 space-y-8">
             {/* User Details Section */}
-            <div className="border-b border-gray-200 pb-6">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            <div className="border-b border-stone-200 pb-6">
+              <h2 className="text-xl font-serif font-medium text-stone-800 mb-4">
                 Personal Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-stone-700">
                     Username
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 bg-gray-50 px-3 py-2 rounded-md">
+                  <p className="mt-1 text-sm text-stone-800 bg-stone-50 px-3 py-2 rounded-md border border-stone-200">
                     {user?.username}
                   </p>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-stone-700">
                     Mobile Number
                   </label>
-                  <p className="mt-1 text-sm text-gray-900 bg-gray-50 px-3 py-2 rounded-md">
+                  <p className="mt-1 text-sm text-stone-800 bg-stone-50 px-3 py-2 rounded-md border border-stone-200">
                     {user?.mobileNumber}
                   </p>
                 </div>
@@ -134,14 +133,14 @@ const ProfilePage = () => {
             </div>
 
             {/* Change Password Section */}
-            <div className="border-b border-gray-200 pb-6">
+            <div className="border-b border-stone-200 pb-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-serif font-medium text-stone-800">
                   Security
                 </h2>
                 <button
                   onClick={() => setShowChangePassword(!showChangePassword)}
-                  className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors"
+                  className="bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 transition-colors"
                 >
                   {showChangePassword ? "Cancel" : "Change Password"}
                 </button>
@@ -150,7 +149,7 @@ const ProfilePage = () => {
               {showChangePassword && (
                 <form onSubmit={handleChangePassword} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-stone-700">
                       Current Password
                     </label>
                     <input
@@ -163,11 +162,11 @@ const ProfilePage = () => {
                           currentPassword: e.target.value,
                         }))
                       }
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                      className="mt-1 block w-full px-3 py-2 border border-stone-200 rounded-md shadow-sm focus:outline-none focus:ring-amber-500/20 focus:border-amber-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-stone-700">
                       New Password
                     </label>
                     <input
@@ -181,11 +180,11 @@ const ProfilePage = () => {
                           newPassword: e.target.value,
                         }))
                       }
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                      className="mt-1 block w-full px-3 py-2 border border-stone-200 rounded-md shadow-sm focus:outline-none focus:ring-amber-500/20 focus:border-amber-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-stone-700">
                       Confirm New Password
                     </label>
                     <input
@@ -198,13 +197,13 @@ const ProfilePage = () => {
                           confirmPassword: e.target.value,
                         }))
                       }
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
+                      className="mt-1 block w-full px-3 py-2 border border-stone-200 rounded-md shadow-sm focus:outline-none focus:ring-amber-500/20 focus:border-amber-500"
                     />
                   </div>
                   <button
                     type="submit"
                     disabled={changingPassword}
-                    className="w-full bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full bg-amber-600 text-white py-2 px-4 rounded-md hover:bg-amber-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {changingPassword
                       ? "Changing Password..."
@@ -216,32 +215,32 @@ const ProfilePage = () => {
 
             {/* Team Information Section */}
             {team && (
-              <div className="border-b border-gray-200 pb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              <div className="border-b border-stone-200 pb-6">
+                <h2 className="text-xl font-serif font-medium text-stone-800 mb-4">
                   My Team
                 </h2>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                <div className="bg-stone-50 rounded-lg p-4 space-y-4 border border-stone-200">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-stone-700">
                       Team Name
                     </label>
-                    <p className="mt-1 text-sm text-gray-900">
+                    <p className="mt-1 text-sm text-stone-800">
                       {team.teamName}
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-stone-700 mb-2">
                       Bulls
                     </label>
                     <div className="space-y-2">
                       {team.bulls.map((bull, index) => (
                         <div
                           key={index}
-                          className="bg-white p-3 rounded border"
+                          className="bg-white p-3 rounded border border-stone-200"
                         >
                           <p className="font-medium">{bull.name}</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-stone-600">
                             Category: {bull.category?.type} -{" "}
                             {bull.category?.value}
                           </p>
@@ -251,21 +250,21 @@ const ProfilePage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-stone-700 mb-2">
                       Team Members
                     </label>
                     <div className="space-y-2">
                       {team.teamMembers.map((member, index) => (
                         <div
                           key={index}
-                          className="bg-white p-3 rounded border"
+                          className="bg-white p-3 rounded border border-stone-200"
                         >
                           <p className="font-medium">{member.name}</p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-stone-600">
                             Role: {member.role}
                           </p>
                           {member.info && (
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-stone-600">
                               Info: {member.info}
                             </p>
                           )}
@@ -275,16 +274,16 @@ const ProfilePage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-stone-700">
                       Status
                     </label>
                     <span
-                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${
                         team.status === "APPROVED"
-                          ? "bg-green-100 text-green-800"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                           : team.status === "PENDING"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
+                          ? "bg-amber-50 text-amber-700 border-amber-100"
+                          : "bg-red-50 text-red-700 border-red-100"
                       }`}
                     >
                       {team.status}
@@ -295,17 +294,17 @@ const ProfilePage = () => {
             )}
 
             {!team && (
-              <div className="border-b border-gray-200 pb-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              <div className="border-b border-stone-200 pb-6">
+                <h2 className="text-xl font-serif font-medium text-stone-800 mb-4">
                   My Team
                 </h2>
-                <div className="bg-gray-50 rounded-lg p-6 text-center">
-                  <p className="text-gray-600">
+                <div className="bg-stone-50 rounded-lg p-6 text-center border border-stone-200">
+                  <p className="text-stone-600">
                     You haven't created a team yet.
                   </p>
                   <button
                     onClick={() => navigate("/bulls")}
-                    className="mt-4 bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors"
+                    className="mt-4 bg-amber-600 text-white px-4 py-2 rounded-md hover:bg-amber-700 transition-colors"
                   >
                     Create Team
                   </button>
@@ -328,8 +327,8 @@ const ProfilePage = () => {
               <div
                 className={`p-4 rounded-md ${
                   message.includes("success")
-                    ? "bg-green-50 text-green-800"
-                    : "bg-red-50 text-red-800"
+                    ? "bg-emerald-50 text-emerald-800 border border-emerald-100"
+                    : "bg-red-50 text-red-800 border border-red-100"
                 }`}
               >
                 {message}

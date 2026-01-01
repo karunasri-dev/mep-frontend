@@ -102,176 +102,174 @@ export default function AdminEventRegistrations() {
     }
   };
 
-  const updateLocalStatus = (id, updatedData) => {
+  const updateLocalStatus = (id, updatedReg) => {
     setRegistrations((prev) =>
-      prev.map((r) => (r._id === id ? updatedData : r))
+      prev.map((r) => (r._id === id ? updatedReg : r))
     );
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "APPROVED":
-        return "bg-green-100 text-green-800";
-      case "REJECTED":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-yellow-100 text-yellow-800";
-    }
-  };
-
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">
-          Registration Approval
-        </h1>
-
-        {/* Event Selector */}
-        <div className="relative min-w-[250px]">
-          <select
-            className="w-full pl-4 pr-10 py-2 border rounded-lg appearance-none bg-white focus:ring-2 focus:ring-blue-500 outline-none"
-            value={selectedEventId}
-            onChange={(e) => setSelectedEventId(e.target.value)}
-          >
-            {events.map((e) => (
-              <option key={e._id} value={e._id}>
-                {e.title}
-              </option>
-            ))}
-            {events.length === 0 && <option>No events found</option>}
-          </select>
-          <ChevronDown
-            className="absolute right-3 top-3 text-gray-500 pointer-events-none"
-            size={16}
-          />
+    <div className="min-h-screen bg-[#fbf6ee] p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-serif text-stone-800 font-medium mb-2">
+              Event Registrations
+            </h1>
+            <p className="text-stone-600">
+              Manage participant registrations for your events
+            </p>
+          </div>
+          
+          {/* Event Selector */}
+          <div className="relative">
+            <select
+              value={selectedEventId}
+              onChange={(e) => setSelectedEventId(e.target.value)}
+              className="appearance-none w-full md:w-64 bg-white border border-stone-200 text-stone-700 py-2.5 px-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 shadow-sm cursor-pointer"
+            >
+              {events.map((evt) => (
+                <option key={evt._id} value={evt._id}>
+                  {evt.name}
+                </option>
+              ))}
+              {events.length === 0 && <option>No events found</option>}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+          </div>
         </div>
-      </div>
 
-      {/* Registrations Table */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden border">
+        {/* Content */}
         {loading ? (
-          <div className="p-8 text-center text-gray-500">
-            Loading registrations...
+          <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
+            <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full mb-4"></div>
+            <p className="text-stone-500 font-medium">Loading registrations...</p>
           </div>
         ) : registrations.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            No registrations found for this event.
+          <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
+            <p className="text-stone-500 font-medium">
+              No registrations found for this event.
+            </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                    Team
-                  </th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                    Captain
-                  </th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                    Registered By
-                  </th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                    Submitted At
-                  </th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-xs font-semibold text-gray-500 uppercase text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {registrations.map((r) => (
-                  <tr
-                    key={r._id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      {r.team?.teamName || "Unknown Team"}
-                    </td>
-                    <td className="px-6 py-4 text-gray-600">{r.captainName}</td>
-                    <td className="px-6 py-4 text-gray-600">
-                      <div>{r.registeredBy?.username}</div>
-                      <div className="text-xs text-gray-400">
-                        {r.registeredBy?.mobileNumber}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-gray-600 text-sm">
-                      {new Date(r.createdAt).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                          r.status
-                        )}`}
-                      >
-                        {r.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      {r.status === "PENDING" && (
-                        <>
-                          <button
-                            onClick={() => handleApprove(r._id)}
-                            disabled={actionLoading === r._id}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 hover:bg-green-100 rounded border border-green-200 text-sm font-medium transition-colors disabled:opacity-50"
-                          >
-                            <Check size={14} /> Approve
-                          </button>
-                          <button
-                            onClick={() => openRejectModal(r._id)}
-                            disabled={actionLoading === r._id}
-                            className="inline-flex items-center gap-1 px-3 py-1 bg-red-50 text-red-700 hover:bg-red-100 rounded border border-red-200 text-sm font-medium transition-colors disabled:opacity-50"
-                          >
-                            <X size={14} /> Reject
-                          </button>
-                        </>
-                      )}
-                    </td>
+          <div className="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead className="bg-stone-50 border-b border-stone-200">
+                  <tr>
+                    <th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                      Team / Owner
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                      Bulls
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                      Category
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-4 text-xs font-semibold text-stone-500 uppercase tracking-wider text-right">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {registrations.map((reg) => (
+                    <tr key={reg._id} className="hover:bg-stone-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-stone-800">
+                          {reg.teamId?.teamName || "Unknown Team"}
+                        </div>
+                        <div className="text-sm text-stone-500">
+                          {reg.teamId?.owner?.name}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-stone-600 text-sm">
+                        {reg.bulls?.map(b => b.name).join(" & ") || "N/A"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 border border-stone-200">
+                          {reg.category}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium border ${
+                            reg.status === "APPROVED"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                              : reg.status === "REJECTED"
+                              ? "bg-red-50 text-red-700 border-red-100"
+                              : "bg-amber-50 text-amber-700 border-amber-100"
+                          }`}
+                        >
+                          {reg.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right space-x-2">
+                        {reg.status === "PENDING" && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(reg._id)}
+                              disabled={actionLoading === reg._id}
+                              className="inline-flex items-center justify-center w-8 h-8 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors border border-emerald-200"
+                              title="Approve"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => openRejectModal(reg._id)}
+                              disabled={actionLoading === reg._id}
+                              className="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors border border-red-200"
+                              title="Reject"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Reject Modal */}
+        {rejectModal.open && (
+          <div className="fixed inset-0 bg-stone-900/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-xl max-w-md w-full p-6 border border-stone-200">
+              <h3 className="text-xl font-serif text-stone-800 mb-4">
+                Reject Registration
+              </h3>
+              <textarea
+                className="w-full p-3 border border-stone-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none resize-none text-stone-700 mb-4"
+                rows="3"
+                placeholder="Enter reason for rejection..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+              ></textarea>
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => setRejectModal({ open: false, id: null })}
+                  className="px-4 py-2 text-stone-600 hover:bg-stone-50 rounded-lg transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleReject}
+                  disabled={actionLoading === rejectModal.id}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
+                >
+                  {actionLoading === rejectModal.id ? "Rejecting..." : "Confirm Reject"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
-
-      {/* Reject Modal */}
-      {rejectModal.open && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
-            <h3 className="text-lg font-bold mb-4">Reject Registration</h3>
-            <textarea
-              className="w-full border rounded p-2 mb-4 focus:ring-2 focus:ring-red-500 outline-none"
-              rows="4"
-              placeholder="Enter reason for rejection..."
-              value={rejectReason}
-              onChange={(e) => setRejectReason(e.target.value)}
-            />
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setRejectModal({ open: false, id: null })}
-                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleReject}
-                disabled={
-                  !rejectReason.trim() || actionLoading === rejectModal.id
-                }
-                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-              >
-                {actionLoading === rejectModal.id
-                  ? "Rejecting..."
-                  : "Confirm Reject"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

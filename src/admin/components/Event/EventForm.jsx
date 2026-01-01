@@ -39,113 +39,128 @@ export default function EventForm({ initialData, onSubmit, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white w-full max-w-2xl rounded-lg shadow-lg">
+    <div className="fixed inset-0 bg-stone-900/50 backdrop-blur-sm flex justify-center items-center z-50 p-4 overflow-y-auto">
+      <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full border border-stone-200 my-8">
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-stone-100">
+          <h3 className="text-xl font-serif font-medium text-stone-800">
             {initialData ? "Edit Event" : "Create Event"}
           </h3>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded">
+          <button 
+            onClick={onClose} 
+            className="p-2 text-stone-400 hover:text-stone-600 hover:bg-stone-50 rounded-lg transition-colors"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Title</label>
-            <input
-              className="input"
-              required
-              value={formData.title}
-              onChange={(e) =>
-                setFormData({ ...formData, title: e.target.value })
-              }
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Description
-            </label>
-            <textarea
-              className="input min-h-[80px]"
-              value={formData.description}
-              onChange={(e) =>
-                setFormData({ ...formData, description: e.target.value })
-              }
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">Location</label>
-            <input
-              className="input"
-              required
-              value={formData.location}
-              onChange={(e) =>
-                setFormData({ ...formData, location: e.target.value })
-              }
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-600 mb-1">
-                Start Time
-              </label>
+              <label className="block text-sm font-medium text-stone-700 mb-1.5">Event Title</label>
               <input
-                type="datetime-local"
-                className="input"
+                className="w-full p-2.5 border border-stone-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none text-stone-700 transition-all placeholder:text-stone-400"
                 required
-                value={formData.from}
+                placeholder="e.g. Grand Bull Race 2024"
+                value={formData.title}
                 onChange={(e) =>
-                  setFormData({ ...formData, from: e.target.value })
+                  setFormData({ ...formData, title: e.target.value })
                 }
               />
             </div>
 
             <div>
-              <label className="block text-sm text-gray-600 mb-1">
-                End Time
+              <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                Description
+              </label>
+              <textarea
+                className="w-full p-2.5 border border-stone-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none text-stone-700 transition-all min-h-[100px] resize-y placeholder:text-stone-400"
+                value={formData.description}
+                placeholder="Describe the event details..."
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1.5">Location</label>
+              <input
+                className="w-full p-2.5 border border-stone-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none text-stone-700 transition-all placeholder:text-stone-400"
+                required
+                placeholder="e.g. Village Ground, District"
+                value={formData.location}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                  Start Time
+                </label>
+                <input
+                  type="datetime-local"
+                  className="w-full p-2.5 border border-stone-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none text-stone-700 transition-all"
+                  required
+                  value={formData.from}
+                  onChange={(e) =>
+                    setFormData({ ...formData, from: e.target.value })
+                  }
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                  End Time
+                </label>
+                <input
+                  type="datetime-local"
+                  className="w-full p-2.5 border border-stone-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none text-stone-700 transition-all"
+                  required
+                  value={formData.to}
+                  onChange={(e) =>
+                    setFormData({ ...formData, to: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-stone-700 mb-1.5">
+                Prize Money (₹)
               </label>
               <input
-                type="datetime-local"
-                className="input"
+                type="number"
+                className="w-full p-2.5 border border-stone-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none text-stone-700 transition-all placeholder:text-stone-400"
                 required
-                value={formData.to}
+                placeholder="0.00"
+                min="0"
+                value={formData.prizeMoney}
                 onChange={(e) =>
-                  setFormData({ ...formData, to: e.target.value })
+                  setFormData({ ...formData, prizeMoney: e.target.value })
                 }
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Prize Money (₹)
-            </label>
-            <input
-              type="number"
-              min="0"
-              className="input"
-              required
-              value={formData.prizeMoney}
-              onChange={(e) =>
-                setFormData({ ...formData, prizeMoney: e.target.value })
-              }
-            />
-          </div>
-
-          {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <button type="button" onClick={onClose} className="btn-secondary">
+          <div className="flex justify-end gap-3 pt-4 border-t border-stone-100">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-5 py-2.5 text-stone-600 hover:bg-stone-50 rounded-lg transition-colors font-medium"
+            >
               Cancel
             </button>
-            <button type="submit" className="btn-primary">
+            <button
+              type="submit"
+              className="flex items-center gap-2 px-5 py-2.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors shadow-sm font-medium"
+            >
               <Save className="w-4 h-4" />
-              {initialData ? "Update Event" : "Create Event"}
+              Save Event
             </button>
           </div>
         </form>
