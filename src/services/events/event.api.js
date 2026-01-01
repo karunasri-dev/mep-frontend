@@ -2,6 +2,8 @@ import api from "../auth/index";
 
 export const getAllEvents = () => api.get("/api/admin/events");
 
+export const getEventById = (id) => api.get(`/api/admin/events/${id}`);
+
 export const createEvent = (data) => api.post("/api/admin/events", data);
 
 export const updateEventDetails = (id, data) =>

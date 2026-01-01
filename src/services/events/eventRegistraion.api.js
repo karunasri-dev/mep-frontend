@@ -7,11 +7,15 @@ export const registerForEvent = (eventId, payload) =>
 
 // admin
 
-export const fetchEventRegistrations = (eventId) =>
-  api.get(`/api/admin/events/${eventId}/registrations`);
+export const fetchEventRegistrations = (eventId) => {
+  return api.get(`/api/admin/registrations`, {
+    params: { eventId },
+  });
+};
 
-export const updateRegistrationStatus = (id, status, reason) =>
-  api.patch(`/api/admin/registrations/${id}/status`, {
+export const updateRegistrationStatus = (registrationId, status, reason) => {
+  return api.patch(`/api/admin/registrations/${registrationId}`, {
     status,
     reason,
   });
+};

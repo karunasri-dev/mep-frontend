@@ -26,6 +26,7 @@ export default function EventRegistrationForm({
 
   if (!event || !team) return null;
 
+  console.log("teamMembers", teamMembers);
   const owner = team.teamMembers?.find((m) => m.role === "OWNER");
 
   // Helpers
