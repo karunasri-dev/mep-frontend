@@ -1,31 +1,59 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Trophy } from "lucide-react";
 import ChampionForm from "../components/ChampionShip/ChampionForm";
 import ChampionCard from "../components/ChampionShip/ChampionCard";
 import Modal from "../components/ChampionShip/Modal";
+import { getAllEvents } from "../../services/events/event.api";
+import { getLeaderboard } from "../../services/events/performance.api";
 
 export default function ChampionManagement() {
-  const [champions, setChampions] = useState([
-    {
-      id: "1",
-      eventId: "1",
-      eventName: "Monsoon Bull Race 2024",
-      eventDate: "2024-08-15",
-      winnerName: "Prakash Shetty",
-      bullName: "Thunderbolt",
-      raceTime: "2:45.32",
-      prizeAmount: "₹5,00,000",
-      notes: "Record-breaking performance in challenging conditions",
-    },
-  ]);
-
-  const [completedEvents] = useState([
-    { id: "1", name: "Monsoon Bull Race 2024", date: "2024-08-15" },
-    { id: "3", name: "Coastal Championship 2024", date: "2024-09-20" },
-  ]);
+  const [champions, setChampions] = useState([]);
+  const [events, setEvents] = useState([]);
+  const completedEvents = useMemo(
+    () => events.filter((e) => e.state === "COMPLETED"),
+    [events]
+  );
 
   const [editingChampion, setEditingChampion] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await getAllEvents();
+        setEvents(res.data.data || []);
+        // Preload champions from leaderboards for completed events
+        const completed = (res.data.data || []).filter((e) => e.state === "COMPLETED");
+        const results = await Promise.all(
+          completed.map(async (e) => {
+            try {
+              const lb = await getLeaderboard(e._id);
+              const top = lb.data.data?.[0];
+              if (!top) return null;
+              return {
+                id: `${e._id}`,
+                eventId: e._id,
+                eventName: e.title,
+                eventDate: e.timings?.from,
+                winnerName: top?.team?.teamName || top?.captainName || "Unknown",
+                bullName: top?.bullName || "N/A",
+                raceTime: top?.timeTaken ? `${top.timeTaken}s` : undefined,
+                prizeAmount: top?.prizeAmount || undefined,
+                notes: "Auto-derived from leaderboard",
+              };
+            } catch {
+              return null;
+            }
+          })
+        );
+        setChampions(results.filter(Boolean));
+      } catch {
+        setEvents([]);
+        setChampions([]);
+      }
+    };
+    load();
+  }, []);
 
   const handleAdd = () => {
     setEditingChampion(null);
@@ -38,13 +66,13 @@ export default function ChampionManagement() {
   };
 
   const handleSave = (data) => {
-    const existingEvent = completedEvents.find((e) => e.id === data.eventId);
+    const existingEvent = completedEvents.find((e) => e._id === data.eventId);
     if (!existingEvent) return;
 
     const payload = {
       ...data,
-      eventName: existingEvent.name,
-      eventDate: existingEvent.date,
+      eventName: existingEvent.title,
+      eventDate: existingEvent.timings?.from,
     };
 
     if (editingChampion) {
@@ -88,7 +116,11 @@ export default function ChampionManagement() {
             onClose={() => setIsFormOpen(false)}
           >
             <ChampionForm
-              completedEvents={completedEvents}
+              completedEvents={completedEvents.map((e) => ({
+                id: e._id,
+                name: e.title,
+                date: e.timings?.from,
+              }))}
               initialData={editingChampion}
               onSave={handleSave}
               onCancel={() => setIsFormOpen(false)}

@@ -9,7 +9,7 @@ export default function TeamCard({ user, onApprove, onReject }) {
             <h3 className="text-xl font-serif text-stone-800 font-medium">
               {user.name}
             </h3>
-            
+
             <div className="space-y-2">
               <div className="flex items-center gap-2.5 text-sm text-stone-600">
                 <div className="w-8 h-8 rounded-lg bg-stone-50 flex items-center justify-center text-stone-400">
@@ -28,16 +28,23 @@ export default function TeamCard({ user, onApprove, onReject }) {
 
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-stone-700">
-              <span className="text-stone-500 text-xs font-medium uppercase tracking-wide w-12">Event</span>
+              <span className="text-stone-500 text-xs font-medium uppercase tracking-wide w-12">
+                Event
+              </span>
               <span className="font-medium text-sm">{user.eventName}</span>
             </div>
             <div className="flex items-center gap-2 text-stone-700">
-              <span className="text-stone-500 text-xs font-medium uppercase tracking-wide w-12">Bull</span>
+              <span className="text-stone-500 text-xs font-medium uppercase tracking-wide w-12">
+                Bull
+              </span>
               <span className="font-medium text-sm">{user.bullName}</span>
             </div>
             <div className="flex items-center gap-2 text-stone-500 text-sm mt-2 pt-2 border-t border-stone-100">
               <Calendar className="w-4 h-4" />
-              <span>Registered: {new Date(user.registrationDate).toLocaleDateString()}</span>
+              <span>
+                Registered:{" "}
+                {new Date(user.registrationDate).toLocaleDateString()}
+              </span>
             </div>
           </div>
         </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import SearchFilterBar from "../components/TeamApproval/SearchFilterBar";
 import UserCard from "../components/TeamApproval/TeamCard";
-import { fetchAllTeams } from "../../services/team.service";
+import { getAllTeamsApi } from "../../services/teams/index";
 import toast from "react-hot-toast";
 
 export default function TeamManagementPage() {
@@ -14,8 +14,8 @@ export default function TeamManagementPage() {
     const load = async () => {
       try {
         setLoading(true);
-        const data = await fetchAllTeams();
-        setTeams(data);
+        const res = await getAllTeamsApi();
+        setTeams(res.data.data || []);
       } catch {
         toast.error("Failed to load teams");
       } finally {

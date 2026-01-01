@@ -15,6 +15,12 @@ export const decideTeamAPI = async (teamId, decision, rejectionReason) => {
   return res.data.data;
 };
 
+// ADMIN :fetch all by status
+export const fetechTeamsByStatus = async (status) => {
+  const res = await api.get(`/api/teams/${status}`);
+  return res.data;
+};
+
 // User :create team
 
 export const createTeamAPI = async (teamData) => {

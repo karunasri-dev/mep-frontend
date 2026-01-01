@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import SearchFilterBar from "../components/TeamApproval/SearchFilterBar";
 import TeamCard from "../components/TeamApproval/TeamCard";
 import {
   fetchPendingTeamsAPI,
   decideTeamAPI,
+  fetechTeamsByStatus,
 } from "../../services/teams/index";
 import toast from "react-hot-toast";
 
@@ -12,7 +13,7 @@ export default function TeamApproval() {
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("pending");
 
   // 🔹 FETCH PENDING TEAMS
   useEffect(() => {
@@ -56,20 +57,16 @@ export default function TeamApproval() {
   };
 
   // 🔹 FILTERING (FRONTEND-ONLY)
-  const filteredTeams = teams.filter((team) => {
-    const s = searchTerm.toLowerCase();
+  const filteredTeams = useMemo(() => {
+    if (filterStatus === "approved" || filterStatus === "rejected")
+      return fetechTeamsByStatus(filterStatus);
 
-    const matchesSearch =
-      team.teamName.toLowerCase().includes(s) ||
-      team.createdBy?.name?.toLowerCase().includes(s);
+    return teams.filter((team) =>
+      team.teamName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [teams, searchTerm, filterStatus]);
 
-    const matchesFilter =
-      filterStatus === "all" || team.status.toLowerCase() === filterStatus;
-
-    return matchesSearch && matchesFilter;
-  });
-
-  const pendingCount = teams.length;
+  const pendingCount = teams.length; // valid now
 
   if (loading) {
     return (
@@ -109,9 +106,9 @@ export default function TeamApproval() {
         </div>
 
         <div className="space-y-4">
-          {filteredTeams.length === 0 ? (
+          {filterStatus !== "pending" ? (
             <div className="text-center py-12 text-stone-500 bg-white rounded-xl border border-stone-200">
-              No pending teams found.
+              Approved and rejected teams are not available yet
             </div>
           ) : (
             filteredTeams.map((team) => (

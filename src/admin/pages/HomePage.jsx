@@ -1,27 +1,65 @@
-import {
-  Users,
-  Calendar,
-  TrendingUp,
-  Radio,
-  BarChart3,
-  Award,
-} from "lucide-react";
+import { Users, Calendar, TrendingUp, Radio, BarChart3, Award } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CardItem from "../components/Home/CardItem";
 import QuickStat from "../components/Home/QuickStat";
 import RecentActivityItem from "../components/Home/RecentAvtivityItem";
-import { useNavigate } from "react-router-dom";
+import { getAllEvents } from "../../services/events/event.api";
+import { fetchPendingTeamsAPI, getAllTeamsApi } from "../../services/teams/index";
 
 export default function Home() {
   const navigate = useNavigate();
+  const [events, setEvents] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [pendingTeamsCount, setPendingTeamsCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const onNavigateToTeams = () => {
     navigate("/admin/teams");
   };
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const [eventsRes, teamsRes, pendingRes] = await Promise.all([
+          getAllEvents(),
+          getAllTeamsApi(),
+          fetchPendingTeamsAPI(),
+        ]);
+        setEvents(eventsRes.data.data || []);
+        setTeams(teamsRes.data.data || []);
+        setPendingTeamsCount((pendingRes || []).length);
+      } catch {
+        setEvents([]);
+        setTeams([]);
+        setPendingTeamsCount(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const metrics = useMemo(() => {
+    const now = Date.now();
+    const totalEvents = events.length;
+    const upcomingEvents = events.filter((e) => {
+      try {
+        return new Date(e.timings?.from).getTime() > now;
+      } catch {
+        return false;
+      }
+    }).length;
+    const liveEvents = events.filter((e) => e.state === "ONGOING").length;
+    const activeTeams = teams.filter((t) => t.status?.toUpperCase() === "APPROVED").length;
+    return { totalEvents, upcomingEvents, liveEvents, activeTeams };
+  }, [events, teams]);
+
   const cards = [
     {
       id: "active-teams",
       title: "Active Teams",
-      value: "24",
+      value: String(metrics.activeTeams || 0),
       subtitle: "Teams currently registered",
       icon: Users,
       onClick: onNavigateToTeams,
@@ -29,63 +67,67 @@ export default function Home() {
     {
       id: "total-events",
       title: "Total Events",
-      value: "12",
+      value: String(metrics.totalEvents || 0),
       subtitle: "Events this season",
       icon: Calendar,
     },
     {
       id: "upcoming-events",
       title: "Upcoming Events",
-      value: "5",
+      value: String(metrics.upcomingEvents || 0),
       subtitle: "Next 30 days",
       icon: TrendingUp,
     },
     {
       id: "live-events",
       title: "Live Events",
-      value: "2",
+      value: String(metrics.liveEvents || 0),
       subtitle: "Currently ongoing",
       icon: Radio,
-      pulse: true,
+      pulse: metrics.liveEvents > 0,
     },
     {
       id: "statistics",
       title: "Statistics",
-      value: "1.2K",
-      subtitle: "Total participants",
+      value: `${metrics.totalEvents} Events`,
+      subtitle: "Overview metrics",
       icon: BarChart3,
     },
     {
       id: "champions",
       title: "Champions",
-      value: "8",
-      subtitle: "Winners this season",
+      value: String(events.filter((e) => e.state === "COMPLETED").length),
+      subtitle: "Completed event winners",
       icon: Award,
     },
   ];
 
-  const activities = [
-    {
-      action: "New team registration",
-      team: "Thunder Riders",
-      time: "5 minutes ago",
-    },
-    {
-      action: "Event completed",
-      team: "Summer Bull Race",
-      time: "2 hours ago",
-    },
-    {
-      action: "Champion updated",
-      team: "Lightning Storm",
-      time: "5 hours ago",
-    },
-    {
-      action: "User approved",
-      team: "Rajesh Kumar",
-      time: "1 day ago",
-    },
-  ];
+  const activities = useMemo(() => {
+    const eventActivities = events
+      .map((e) => ({
+        action: e.state === "COMPLETED" ? "Event completed" : "Event update",
+        team: e.title,
+        time: new Date(e.updatedAt || e.timings?.from || Date.now()).toLocaleString(),
+        kind: "event",
+        ts: new Date(e.updatedAt || e.timings?.from || Date.now()).getTime(),
+      }))
+      .slice(0, 10);
+    const teamActivities = teams
+      .map((t) => ({
+        action:
+          t.status?.toUpperCase() === "APPROVED"
+            ? "Team approved"
+            : t.status?.toUpperCase() === "REJECTED"
+            ? "Team rejected"
+            : "New team registration",
+        team: t.teamName,
+        time: new Date(t.updatedAt || t.createdAt || Date.now()).toLocaleString(),
+        kind: "team",
+        ts: new Date(t.updatedAt || t.createdAt || Date.now()).getTime(),
+      }))
+      .slice(0, 10);
+    return [...eventActivities, [...teamActivities]].flat().sort((a, b) => b.ts - a.ts).slice(0, 8);
+  }, [events, teams]);
 
   return (
     <div>
@@ -109,21 +151,19 @@ export default function Home() {
       <div className="mt-12">
         <h3 className="text-xl font-serif text-stone-800 font-medium mb-6 px-1">Quick Overview</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <QuickStat
-            label="Pending Approvals"
-            value="18 Users"
-            icon="⏳"
-          />
-          <QuickStat
-            label="Total Prize Pool"
-            value="₹42,00,000"
-            icon="💰"
-          />
+          <QuickStat label="Pending Approvals" value={`${pendingTeamsCount} Teams`} icon="⏳" />
           <QuickStat
             label="Completion Rate"
-            value="94.5%"
+            value={
+              events.length
+                ? `${Math.round(
+                    (events.filter((e) => e.state === "COMPLETED").length / events.length) * 100
+                  )}%`
+                : "0%"
+            }
             icon="📊"
           />
+          <QuickStat label="Live Events" value={`${metrics.liveEvents}`} icon="🎥" />
         </div>
       </div>
 

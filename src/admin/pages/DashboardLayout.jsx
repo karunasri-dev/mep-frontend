@@ -6,8 +6,17 @@ import Header from "../../components/Header";
 const adminTabs = [
   { id: "home", label: "Dashboard Home", path: "/admin/home" },
   { id: "teams", label: "Teams", path: "/admin/teams" },
-  { id: "users", label: "User Approvals", path: "/admin/users" },
+  {
+    id: "team-approval",
+    label: "Team Approvals",
+    path: "/admin/team-approval",
+  },
   { id: "events", label: "Event Management", path: "/admin/events" },
+  {
+    id: "registrations",
+    label: "Event Registrations",
+    path: "/admin/registrations",
+  },
   { id: "champions", label: "Champions", path: "/admin/champions" },
 ];
 
@@ -24,8 +33,12 @@ export default function Dashboard() {
               <Trophy className="w-6 h-6 text-amber-600" />
             </div>
             <div>
-              <h1 className="text-stone-900 font-serif font-bold text-xl leading-none">Admin Dashboard</h1>
-              <p className="text-stone-500 text-xs font-medium tracking-wide mt-1">BULL RACE MANAGEMENT</p>
+              <h1 className="text-stone-900 font-serif font-bold text-xl leading-none">
+                Admin Dashboard
+              </h1>
+              <p className="text-stone-500 text-xs font-medium tracking-wide mt-1">
+                BULL RACE MANAGEMENT
+              </p>
             </div>
           </div>
           {/* <Header /> */}
@@ -41,7 +54,9 @@ export default function Dashboard() {
 
       {/* NAVIGATION */}
       <nav
-        className={`lg:block ${open ? "block" : "hidden"} bg-white border-b border-stone-200`}
+        className={`lg:block ${
+          open ? "block" : "hidden"
+        } bg-white border-b border-stone-200`}
       >
         <div className="max-w-7xl mx-auto px-4 py-2 flex flex-col lg:flex-row gap-1">
           {adminTabs.map((tab) => (

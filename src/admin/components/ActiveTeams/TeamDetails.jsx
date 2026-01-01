@@ -4,91 +4,112 @@ import TeamStats from "./TeamStats";
 import RecentEvents from "./RecentEvents";
 import TeamMembers from "./TeamMembers";
 import BullInfo from "./BullInfo";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { getTeamByIdApi } from "../../../services/teams/index";
 
-export default function TeamDetails({ teamId, onBack }) {
+export default function TeamDetails() {
   const navigate = useNavigate();
-  // your mock team data remains same here
-  const team = {
-    id: teamId,
-    name: "Thunder Riders",
-    owner: "Rajesh Kumar",
-    bullName: "Thunderbolt",
-    location: "Mangalore, Karnataka",
-    established: "2020",
-    members: 8,
-    totalEvents: 12,
-    wins: 5,
-    podiums: 9,
-    image: "🐂",
-    description:
-      "One of the most competitive teams in the coastal region, known for their exceptional training techniques and championship-winning performances.",
-    stats: {
-      winRate: "41.7%",
-      bestTime: "2:34.12",
-      totalPrizes: "₹18,50,000",
-      currentRank: 3,
-    },
-    recentEvents: [
-      {
-        name: "Summer Bull Race 2024",
-        date: "2024-08-15",
-        position: 1,
-        prize: "₹5,00,000",
+  const { id } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        setErr(null);
+        const res = await getTeamByIdApi(id);
+        setData(res.data.data);
+      } catch (e) {
+        setErr("Failed to load team details");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [id]);
+
+  const team = useMemo(() => {
+    if (!data) return null;
+    const firstPair =
+      Array.isArray(data.bullPairs) && data.bullPairs.length > 0
+        ? data.bullPairs[0]
+        : null;
+    const bullName =
+      firstPair?.bullA?.name || firstPair?.bullB?.name || "N/A";
+    const members = Array.isArray(data.teamMembers) ? data.teamMembers.length : 0;
+    const totalEvents = data.eventsParticipated || 0;
+    const wins = data.wins || 0;
+    const winRate =
+      totalEvents > 0 ? `${Math.round((wins / totalEvents) * 100)}%` : "—";
+
+    return {
+      id: data._id,
+      name: data.teamName,
+      owner: data.createdBy?.name || "Unknown Owner",
+      bullName,
+      location: data.location || "—",
+      established: data.createdAt ? new Date(data.createdAt).getFullYear() : "—",
+      members,
+      totalEvents,
+      wins,
+      podiums: data.podiums || 0,
+      image: "🐂",
+      description: data.description || "Team description not available.",
+      stats: {
+        winRate,
+        bestTime: data.bestTime || "—",
+        totalPrizes: data.totalPrizes || "—",
+        currentRank: data.rank || "-",
       },
-      {
-        name: "Coastal Championship",
-        date: "2024-09-20",
-        position: 3,
-        prize: "₹2,00,000",
-      },
-      {
-        name: "Monsoon Cup",
-        date: "2024-10-05",
-        position: 2,
-        prize: "₹3,50,000",
-      },
-      {
-        name: "Winter Festival",
-        date: "2024-11-12",
-        position: 5,
-        prize: "₹50,000",
-      },
-    ],
-    teamMembers: [
-      { name: "Rajesh Kumar", role: "Owner & Trainer" },
-      { name: "Suresh Patil", role: "Assistant Trainer" },
-      { name: "Mahesh Naik", role: "Handler" },
-      { name: "Ganesh Hegde", role: "Veterinarian" },
-      { name: "Anil Rao", role: "Nutritionist" },
-      { name: "Kiran Poojary", role: "Equipment Manager" },
-      { name: "Mohan Bhandary", role: "Support Staff" },
-      { name: "Prakash Shetty", role: "Support Staff" },
-    ],
-  };
+      recentEvents: Array.isArray(data.recentEvents) ? data.recentEvents : [],
+      teamMembers:
+        Array.isArray(data.teamMembers)
+          ? data.teamMembers.map((m) => ({
+              name: m.name || "Unknown",
+              role: m.role || "Member",
+            }))
+          : [],
+    };
+  }, [data]);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-xl shadow-sm border border-stone-200 p-6">
       <button
         onClick={() => navigate("/admin/teams")}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-6"
+        className="flex items-center gap-2 text-amber-700 hover:text-amber-900 mb-6 font-medium"
       >
         <ArrowLeft className="w-5 h-5" />
         Back to Teams
       </button>
 
-      <TeamHero team={team} />
-      <TeamStats stats={team.stats} />
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2">
-          <RecentEvents events={team.recentEvents} />
+      {loading ? (
+        <div className="p-12 text-center">
+          <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full mb-4"></div>
+          <p className="text-stone-500 font-medium">Loading team details...</p>
         </div>
+      ) : err ? (
+        <div className="p-6 bg-stone-50 border border-stone-200 rounded-lg text-stone-700">
+          {err}
+        </div>
+      ) : team ? (
+        <>
+          <TeamHero team={team} />
+          <TeamStats stats={team.stats} />
 
-        <TeamMembers members={team.teamMembers} />
-      </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <RecentEvents events={team.recentEvents} />
+            </div>
 
-      <BullInfo team={team} />
+            <TeamMembers members={team.teamMembers} />
+          </div>
+
+          <BullInfo team={team} />
+        </>
+      ) : null}
     </div>
   );
 }
