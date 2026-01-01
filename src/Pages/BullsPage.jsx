@@ -77,12 +77,16 @@ const BullsPage = () => {
                         <ul className="space-y-2">
                           {team.bullPairs.map((pair, idx) => (
                             <li key={pair._id || idx}>
-                              <span className="font-medium">
+                              <span className="font-medium mx-2">
                                 {pair?.bullA?.name ?? "Unknown Bull"}
                               </span>{" "}
                               &{" "}
-                              <span className="font-medium">
+                              <span className="font-medium mx-2">
                                 {pair?.bullB?.name ?? "Unknown Bull"}
+                              </span>{" "}
+                              -{" "}
+                              <span className="font-medium mx-2">
+                                {pair?.category.value}
                               </span>
                             </li>
                           ))}
@@ -105,7 +109,7 @@ const BullsPage = () => {
         <div className="fixed inset-0 z-50 bg-black/40 overflow-y-auto">
           <div className="min-h-screen flex items-start justify-center py-10">
             <CreateTeam
-              onSuccess={handleTeamCreated}
+              onSubmit={handleTeamCreated}
               onCancel={() => setShowForm(false)}
             />
           </div>

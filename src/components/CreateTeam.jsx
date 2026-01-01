@@ -113,6 +113,10 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
       if (!category || !category.type || !category.value) {
         return "Each bull pair must have a valid category";
       }
+
+      if (form.teamMembers.length < 2) {
+        return "At least two team members are required";
+      }
     }
 
     return null; // valid
@@ -165,7 +169,7 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
       console.log("FINAL PAYLOAD", JSON.stringify(payload, null, 2));
 
       const result = await createTeamAPI(payload);
-      await refreshTeams();
+      // await refreshTeams();
       onSubmit?.(result);
       // On success, perhaps reset form or call onSubmit
       setForm({
@@ -185,7 +189,19 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
 
   return (
     <div className="bg-white w-full max-w-xl rounded-2xl shadow-2xl p-6 ">
-      <h3 className="text-xl font-bold mb-6 text-gray-800">Add Your Team</h3>
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold mb-6 text-gray-800">Add Your Team</h3>
+
+        <button
+          type="button"
+          onClick={onCancel}
+          className="text-gray-400 hover:text-gray-700 text-xl font-bold"
+          aria-label="Close"
+        >
+          ✕
+        </button>
+      </div>
+
       {error && <p className="text-red-500 mb-4">{error}</p>}
 
       <form onSubmit={handleSubmit} className="space-y-5">
@@ -214,7 +230,7 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
           </p>
 
           {form.bullPairs.map((pair, i) => (
-            <div key={i} className="space-y-2 border rounded-lg p-3">
+            <div key={i} className="space-y-2 rounded-lg">
               {/* Category */}
               <select
                 value={pair.categoryKey}
@@ -263,6 +279,12 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
                   onChange={(e) =>
                     handleBullPairChange(i, "bullB", e.target.value)
                   }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addBullPair();
+                    }
+                  }}
                   className="flex-1 border rounded-lg px-3 py-2 text-sm"
                 />
 
@@ -300,6 +322,12 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
                 placeholder="Member Name"
                 value={m.name}
                 onChange={(e) => updateMember(i, "name", e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addMember();
+                  }
+                }}
                 className="flex-1 border rounded-lg px-3 py-2 text-sm"
               />
 
