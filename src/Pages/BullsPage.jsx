@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTeams } from "../context/TeamContext";
 import CreateTeam from "../components/CreateTeam";
+import { TableSkeleton } from "../components/ShimmerEffect";
 
 const BullsPage = () => {
   const { isLogin } = useAuth();
@@ -17,10 +18,12 @@ const BullsPage = () => {
 
   if (loading)
     return (
-      <div className="min-h-screen bg-[#fbf6ee] flex justify-center items-center">
-        <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
-          <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full mb-4"></div>
-          <p className="text-stone-500 font-medium">Loading teams...</p>
+      <div className="min-h-screen bg-[#fbf6ee] py-8">
+        <div className="max-w-7xl mx-auto px-4 space-y-6" aria-busy="true">
+          <div className="flex justify-between items-center">
+            <div className="h-8 w-48 bg-stone-200/60 rounded-md" aria-hidden="true"></div>
+          </div>
+          <TableSkeleton rows={6} />
         </div>
       </div>
     );

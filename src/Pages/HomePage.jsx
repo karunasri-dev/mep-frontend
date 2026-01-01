@@ -1,4 +1,4 @@
-import { ShimmerCardH } from "../components/ShimmerEffect";
+import { CardSkeleton } from "../components/ShimmerEffect";
 import Header from "../components/Header";
 import Navigation from "../components/Navigation";
 import DashboardCard from "../components/DashboardCard";
@@ -34,7 +34,7 @@ const HomePage = ({ loading }) => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-10">
         {[...Array(6)].map((_, i) => (
-          <ShimmerCardH key={i} />
+          <CardSkeleton key={i} />
         ))}
       </div>
     );

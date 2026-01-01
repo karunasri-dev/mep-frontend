@@ -1,4 +1,4 @@
-import { ShimmerCardH } from "../components/ShimmerEffect";
+import { CardSkeleton } from "../components/ShimmerEffect";
 import { Link, useNavigate } from "react-router-dom";
 import { useTeams } from "../context/TeamContext";
 import { useEffect } from "react";
@@ -17,7 +17,7 @@ const TeamsPage = ({ loading }) => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {[1, 2, 3].map((i) => (
-          <ShimmerCardH key={i} />
+          <CardSkeleton key={i} />
         ))}
       </div>
     );

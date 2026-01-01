@@ -31,7 +31,7 @@ export default function Register() {
 
     try {
       setLoading(true);
-      const response = await registerAPI(data);
+      const response = await registerAPI({ username, mobileNumber, password });
       const user = response.data.user;
       console.log("user details registered  :", user);
       toast.success("Registration successful");

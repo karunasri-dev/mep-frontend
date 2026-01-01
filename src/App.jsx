@@ -16,7 +16,6 @@ import Header from "./components/Header";
 import Navigation from "./components/Navigation";
 
 // user pages
-import DashboardPage from "./Pages/DashboardPage";
 import TeamsPage from "./Pages/TeamsPage";
 import BullsPage from "./Pages/BullsPage";
 import TeamDetailsPage from "./Pages/TeamDetailsPage";
@@ -36,7 +35,7 @@ import TeamDetails from "./admin/components/ActiveTeams/TeamDetails";
 import Home from "./admin/pages/HomePage";
 import AdminEventRegistrations from "./admin/pages/AdminEventRegistration";
 
-import { useAuth } from "./context/AuthContext";
+// import { useAuth } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import { ShimmerTable } from "./components/ShimmerEffect";
@@ -110,7 +109,7 @@ function AdminRoutes() {
 function AppContent() {
   const [loading, setLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { isLogin } = useAuth() || {};
+
   const location = useLocation();
 
   const PUBLIC_PATHS = ["/", "/auth", "/login", "/register"];
@@ -149,10 +148,6 @@ function AppContent() {
           setMobileMenuOpen={setMobileMenuOpen}
         >
           <Routes>
-            <Route
-              path="/dashboard"
-              element={<DashboardPage loading={loading} />}
-            />
             <Route path="/teams" element={<TeamsPage loading={loading} />} />
             <Route path="/bulls" element={<BullsPage loading={loading} />} />
 
