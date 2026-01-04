@@ -1,67 +1,34 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTeams } from "../context/TeamContext";
 
-const DriversPage = () => {
+const DriversPage = ({ loading }) => {
+  const { teams, loading: contextLoading, fetchTeamsOnce } = useTeams();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 10;
 
-  // ✅ Backend-shaped sample data
-  const teams = [
-    {
-      teamName: "Thunder Bulls",
-      bulls: [{ name: "Bull A" }, { name: "Bull B" }],
-      teamMembers: [
-        {
-          name: "Rajesh Kumar",
-          role: "OWNER",
-          info: "Senior driver, 8 years experience",
-        },
-        {
-          name: "Ravi",
-          role: "DRIVER",
-          info: "Junior driver, 2 years experience",
-        },
-      ],
-    },
-    {
-      teamName: "Mighty Warriors",
-      bulls: [{ name: "Bull X" }, { name: "Bull Y" }],
-      teamMembers: [
-        {
-          name: "Krishna Murthy",
-          role: "OWNER",
-          info: "Senior driver, 8 years experience",
-        },
-        {
-          name: "Manoj",
-          role: "DRIVER",
-          info: "Senior driver, 5 years experience",
-        },
-      ],
-    },
-    {
-      teamName: "Power Bulls",
-      bulls: [{ name: "Bull X" }],
-      teamMembers: [
-        { name: "Krishna Murthy", role: "OWNER", info: "Young Talent" },
-        { name: "Suresh", role: "DRIVER" },
-      ],
-    },
-  ];
+  useEffect(() => {
+    fetchTeamsOnce();
+  }, []);
+
+  const isLoading = loading || contextLoading;
 
   // ✅ Derive drivers from teams
   const allDrivers = useMemo(() => {
+    if (!teams) return [];
     return teams.flatMap((team) =>
-      team.teamMembers
+      (team.teamMembers || [])
         .filter((m) => m.role === "DRIVER")
         .map((driver, index) => ({
-          id: `${team.teamName}-${index}`,
+          id: `${team._id}-${index}`,
           name: driver.name,
           team: team.teamName,
-          bulls: team.bulls.map((b) => b.name).join(", "),
-          info: driver.info || "",
-          status: "Active",
+          bulls: (team.bullPairs || [])
+            .flatMap((bp) => [bp.bullA.name, bp.bullB.name])
+            .join(", "),
+          info: driver.info || "No details available",
+          status: team.isActive ? "Active" : "Inactive",
         }))
     );
   }, [teams]);
@@ -88,86 +55,114 @@ const DriversPage = () => {
     setCurrentPage(1);
   }, [searchTerm]);
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#fbf6ee] flex justify-center items-center">
+        <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
+          <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full mb-4"></div>
+          <p className="text-stone-500 font-medium">Loading drivers...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold mb-4">Drivers</h1>
+    <div className="min-h-screen bg-[#fbf6ee] py-8">
+      <div className="max-w-7xl mx-auto px-4">
+        <h1 className="text-2xl font-serif font-medium text-stone-800 mb-4">Drivers</h1>
 
         {/* Search */}
         <div className="relative mb-4">
           <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
             size={18}
           />
           <input
-            placeholder="Search driver, team, bull..."
+            type="text"
+            placeholder="Search drivers, teams, or bulls..."
+            className="w-full pl-10 pr-4 py-2 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full border rounded-lg"
           />
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-800 text-white">
-              <tr>
-                <th className="px-4 py-3 text-left">Driver Name</th>
-                <th className="px-4 py-3 text-left">Team</th>
-                <th className="px-4 py-3 text-left">Bulls</th>
-                <th className="px-4 py-3 text-left">Info</th>
-                <th className="px-4 py-3 text-left">Status</th>
-              </tr>
-            </thead>
-
-            <tbody className="divide-y">
-              {currentDrivers.map((d) => (
-                <tr key={d.id}>
-                  <td className="px-4 py-3 font-medium">{d.name}</td>
-                  <td className="px-4 py-3">{d.team}</td>
-                  <td className="px-4 py-3">{d.bulls}</td>
-                  <td className="px-4 py-3">{d.info || "-"}</td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                      {d.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-
-              {currentDrivers.length === 0 && (
+        <div className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-stone-50 text-stone-600 uppercase text-xs border-b border-stone-200">
                 <tr>
-                  <td colSpan="4" className="text-center py-6 text-gray-500">
-                    No drivers found
-                  </td>
+                  <th className="px-4 py-3">Name</th>
+                  <th className="px-4 py-3">Team</th>
+                  <th className="px-4 py-3">Bulls</th>
+                  <th className="px-4 py-3">Info</th>
+                  <th className="px-4 py-3">Status</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-between items-center mt-4">
-            <button
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((p) => p - 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <span className="text-sm">
-              Page {currentPage} of {totalPages}
-            </span>
-            <button
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((p) => p + 1)}
-              className="px-3 py-1 border rounded disabled:opacity-50"
-            >
-              <ChevronRight size={18} />
-            </button>
+              </thead>
+              <tbody className="text-sm text-stone-700">
+                {currentDrivers.length > 0 ? (
+                  currentDrivers.map((driver) => (
+                    <tr
+                      key={driver.id}
+                      className="hover:bg-stone-50 border-b border-stone-100 last:border-none transition"
+                    >
+                      <td className="px-4 py-3 font-medium text-stone-800">
+                        {driver.name}
+                      </td>
+                      <td className="px-4 py-3">{driver.team}</td>
+                      <td className="px-4 py-3">{driver.bulls}</td>
+                      <td className="px-4 py-3 text-stone-500 truncate max-w-xs">
+                        {driver.info}
+                      </td>
+                      <td className="px-4 py-3">
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-semibold border ${
+                            driver.status === "Active"
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-100"
+                              : "bg-red-50 text-red-700 border-red-100"
+                          }`}
+                        >
+                          {driver.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="p-6 text-center text-stone-500">
+                      No drivers found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
-        )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center p-3 border-t border-stone-200 bg-stone-50">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="p-2 border border-stone-200 rounded hover:bg-stone-100 disabled:opacity-50"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <span className="text-sm text-stone-600">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(totalPages, p + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="p-2 border border-stone-200 rounded hover:bg-stone-100 disabled:opacity-50"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

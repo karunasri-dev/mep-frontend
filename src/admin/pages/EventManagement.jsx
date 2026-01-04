@@ -3,36 +3,14 @@ import { Plus } from "lucide-react";
 import EventForm from "../components/Event/EventForm";
 import EventCard from "../components/Event/EventCard";
 import {
-  fetchAdminEvents,
+  getAllEvents,
   createEvent,
   updateEventDetails,
   deleteEvent,
-} from "../../services/events/index";
+} from "../../services/events/event.api";
 
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
-  // const [events, setEvents] = useState([
-  //   {
-  //     id: "1",
-  //     name: "Summer Bull Race 2025",
-  //     date: "2025-12-20",
-  //     location: "Mangalore Arena",
-  //     maxParticipants: 50,
-  //     registeredCount: 23,
-  //     prizeAmount: "₹5,00,000",
-  //     status: "upcoming",
-  //   },
-  //   {
-  //     id: "2",
-  //     name: "Winter Championship 2025",
-  //     date: "2026-01-15",
-  //     location: "Udupi Stadium",
-  //     maxParticipants: 40,
-  //     registeredCount: 12,
-  //     prizeAmount: "₹3,00,000",
-  //     status: "upcoming",
-  //   },
-  // ]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
@@ -48,7 +26,8 @@ export default function EventManagement() {
   const loadEvents = async () => {
     try {
       setLoading(true);
-      const res = await fetchAdminEvents();
+      const res = await getAllEvents();
+      // console.log("Event data.....", res.data);
       setEvents(res.data.data);
     } catch (err) {
       console.error("Failed to load events");
@@ -94,8 +73,8 @@ export default function EventManagement() {
       }
 
       setIsFormOpen(false);
-    } catch {
-      alert("Save failed");
+    } catch (err) {
+      console.log(err.message || err || "Saving failed");
     }
   };
 
@@ -103,50 +82,63 @@ export default function EventManagement() {
      RENDER
      ============================== */
   return (
-    <div>
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h2 className="text-gray-900 mb-2">Event Management</h2>
-          <p className="text-gray-600">
-            Create, update, and manage bull race events
-          </p>
+    <div className="min-h-screen bg-[#fbf6ee] p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-serif text-stone-800 font-medium mb-2">
+              Event Management
+            </h1>
+            <p className="text-stone-600">
+              Create, update, and manage bull race events
+            </p>
+          </div>
+
+          <button
+            onClick={handleAdd}
+            className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors shadow-sm font-medium"
+          >
+            <Plus className="w-5 h-5" />
+            Add Event
+          </button>
         </div>
 
-        <button
-          onClick={handleAdd}
-          className="flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700"
-        >
-          <Plus className="w-5 h-5" />
-          Add Event
-        </button>
+        {isFormOpen && (
+          <EventForm
+            initialData={editingEvent}
+            onSubmit={handleSubmit}
+            onClose={() => setIsFormOpen(false)}
+          />
+        )}
+
+        {loading ? (
+          <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
+            <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full mb-4"></div>
+            <p className="text-stone-500 font-medium">Loading events...</p>
+          </div>
+        ) : events.length === 0 ? (
+          <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
+            <p className="text-stone-500 font-medium">
+              No events created yet.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {events.map((event) => (
+              <EventCard
+                key={event._id}
+                event={event}
+                onEdit={() => handleEdit(event)}
+                onDelete={() => handleDelete(event._id)}
+                // Pass a dummy handler or update logic if needed for state update from card
+                onStateUpdate={(updatedEvent) => {
+                  setEvents(prev => prev.map(e => e._id === updatedEvent._id ? updatedEvent : e));
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
-
-      {isFormOpen && (
-        <EventForm
-          initialData={editingEvent}
-          onSubmit={handleSubmit}
-          onClose={() => setIsFormOpen(false)}
-        />
-      )}
-
-      {loading ? (
-        <p className="text-gray-500">Loading events...</p>
-      ) : events.length === 0 ? (
-        <div className="text-center py-12 text-gray-500">
-          No events created yet.
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {events.map((event) => (
-            <EventCard
-              key={event._id}
-              event={event}
-              onEdit={() => handleEdit(event)}
-              onDelete={() => handleDelete(event._id)}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

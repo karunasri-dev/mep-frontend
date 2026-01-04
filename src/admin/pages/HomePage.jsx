@@ -1,115 +1,140 @@
-import {
-  Users,
-  Calendar,
-  TrendingUp,
-  Radio,
-  BarChart3,
-  Award,
-} from "lucide-react";
+import { Users, Calendar, TrendingUp, Radio, BarChart3, Award } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import CardItem from "../components/Home/CardItem";
 import QuickStat from "../components/Home/QuickStat";
 import RecentActivityItem from "../components/Home/RecentAvtivityItem";
-import { useNavigate } from "react-router-dom";
+import { getAllEvents } from "../../services/events/event.api";
+import { fetchPendingTeamsAPI, getAllTeamsApi } from "../../services/teams/index";
 
 export default function Home() {
   const navigate = useNavigate();
+  const [events, setEvents] = useState([]);
+  const [teams, setTeams] = useState([]);
+  const [pendingTeamsCount, setPendingTeamsCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const onNavigateToTeams = () => {
     navigate("/admin/teams");
   };
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const [eventsRes, teamsRes, pendingRes] = await Promise.all([
+          getAllEvents(),
+          getAllTeamsApi(),
+          fetchPendingTeamsAPI(),
+        ]);
+        setEvents(eventsRes.data.data || []);
+        setTeams(teamsRes.data.data || []);
+        setPendingTeamsCount((pendingRes || []).length);
+      } catch {
+        setEvents([]);
+        setTeams([]);
+        setPendingTeamsCount(0);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const metrics = useMemo(() => {
+    const now = Date.now();
+    const totalEvents = events.length;
+    const upcomingEvents = events.filter((e) => {
+      try {
+        return new Date(e.timings?.from).getTime() > now;
+      } catch {
+        return false;
+      }
+    }).length;
+    const liveEvents = events.filter((e) => e.state === "ONGOING").length;
+    const activeTeams = teams.filter((t) => t.status?.toUpperCase() === "APPROVED").length;
+    return { totalEvents, upcomingEvents, liveEvents, activeTeams };
+  }, [events, teams]);
+
   const cards = [
     {
       id: "active-teams",
       title: "Active Teams",
-      value: "24",
+      value: String(metrics.activeTeams || 0),
       subtitle: "Teams currently registered",
       icon: Users,
-      gradient: "from-blue-500 to-blue-700",
-      bgPattern: "from-blue-50 to-blue-100",
       onClick: onNavigateToTeams,
-      pulse: false,
     },
     {
       id: "total-events",
       title: "Total Events",
-      value: "12",
+      value: String(metrics.totalEvents || 0),
       subtitle: "Events this season",
       icon: Calendar,
-      gradient: "from-purple-500 to-purple-700",
-      bgPattern: "from-purple-50 to-purple-100",
     },
     {
       id: "upcoming-events",
       title: "Upcoming Events",
-      value: "5",
+      value: String(metrics.upcomingEvents || 0),
       subtitle: "Next 30 days",
       icon: TrendingUp,
-      gradient: "from-green-500 to-green-700",
-      bgPattern: "from-green-50 to-green-100",
     },
     {
       id: "live-events",
       title: "Live Events",
-      value: "2",
+      value: String(metrics.liveEvents || 0),
       subtitle: "Currently ongoing",
       icon: Radio,
-      gradient: "from-red-500 to-red-700",
-      bgPattern: "from-red-50 to-red-100",
-      pulse: true,
+      pulse: metrics.liveEvents > 0,
     },
     {
       id: "statistics",
       title: "Statistics",
-      value: "1.2K",
-      subtitle: "Total participants",
+      value: `${metrics.totalEvents} Events`,
+      subtitle: "Overview metrics",
       icon: BarChart3,
-      gradient: "from-orange-500 to-orange-700",
-      bgPattern: "from-orange-50 to-orange-100",
     },
     {
       id: "champions",
       title: "Champions",
-      value: "8",
-      subtitle: "Winners this season",
+      value: String(events.filter((e) => e.state === "COMPLETED").length),
+      subtitle: "Completed event winners",
       icon: Award,
-      gradient: "from-amber-500 to-amber-700",
-      bgPattern: "from-amber-50 to-amber-100",
     },
   ];
 
-  const activities = [
-    {
-      action: "New team registration",
-      team: "Thunder Riders",
-      time: "5 minutes ago",
-      color: "bg-blue-500",
-    },
-    {
-      action: "Event completed",
-      team: "Summer Bull Race",
-      time: "2 hours ago",
-      color: "bg-green-500",
-    },
-    {
-      action: "Champion updated",
-      team: "Lightning Storm",
-      time: "5 hours ago",
-      color: "bg-amber-500",
-    },
-    {
-      action: "User approved",
-      team: "Rajesh Kumar",
-      time: "1 day ago",
-      color: "bg-purple-500",
-    },
-  ];
+  const activities = useMemo(() => {
+    const eventActivities = events
+      .map((e) => ({
+        action: e.state === "COMPLETED" ? "Event completed" : "Event update",
+        team: e.title,
+        time: new Date(e.updatedAt || e.timings?.from || Date.now()).toLocaleString(),
+        kind: "event",
+        ts: new Date(e.updatedAt || e.timings?.from || Date.now()).getTime(),
+      }))
+      .slice(0, 10);
+    const teamActivities = teams
+      .map((t) => ({
+        action:
+          t.status?.toUpperCase() === "APPROVED"
+            ? "Team approved"
+            : t.status?.toUpperCase() === "REJECTED"
+            ? "Team rejected"
+            : "New team registration",
+        team: t.teamName,
+        time: new Date(t.updatedAt || t.createdAt || Date.now()).toLocaleString(),
+        kind: "team",
+        ts: new Date(t.updatedAt || t.createdAt || Date.now()).getTime(),
+      }))
+      .slice(0, 10);
+    return [...eventActivities, [...teamActivities]].flat().sort((a, b) => b.ts - a.ts).slice(0, 8);
+  }, [events, teams]);
 
   return (
     <div>
       {/* Hero */}
       <div className="mb-12 text-center">
-        <h1 className="text-gray-900 mb-4">Welcome to Bull Race Management</h1>
-        <p className="text-gray-600 max-w-2xl mx-auto">
+        <h1 className="text-4xl font-serif font-medium text-stone-900 mb-4">Welcome to Bull Race Management</h1>
+        <p className="text-stone-600 max-w-2xl mx-auto text-lg">
           Monitor and manage all aspects of your bull racing events from this
           comprehensive dashboard.
         </p>
@@ -117,73 +142,36 @@ export default function Home() {
 
       {/* Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {cards.map((card) => {
-          const Icon = card.icon;
-
-          return (
-            <div
-              key={card.id}
-              onClick={card.onClick}
-              className={`border border-stone-300 bg-white p-6
-          hover:border-amber-600 transition
-          ${card.onClick ? "cursor-pointer" : ""}`}
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-stone-700 font-medium">{card.title}</h3>
-
-                <Icon className="w-5 h-5 text-amber-700" />
-              </div>
-
-              {/* Value */}
-              <div className="text-4xl font-serif text-stone-900 mb-1">
-                {card.value}
-              </div>
-
-              {/* Subtitle */}
-              <p className="text-sm text-stone-500">{card.subtitle}</p>
-
-              {/* Indicator */}
-              {card.onClick && (
-                <p className="mt-4 text-sm text-amber-700 font-medium">
-                  View details →
-                </p>
-              )}
-              {card.pulse && (
-                <span className="text-xs text-red-700 font-medium">● LIVE</span>
-              )}
-            </div>
-          );
-        })}
+        {cards.map((card) => (
+          <CardItem key={card.id} {...card} />
+        ))}
       </div>
 
       {/* Quick Stats */}
-      <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <QuickStat
-          label="Pending Approvals"
-          value="18 Users"
-          icon="⏳"
-          color="yellow"
-        />
-        <QuickStat
-          label="Total Prize Pool"
-          value="₹42,00,000"
-          icon="💰"
-          color="green"
-        />
-        <QuickStat
-          label="Completion Rate"
-          value="94.5%"
-          icon="📊"
-          color="blue"
-        />
+      <div className="mt-12">
+        <h3 className="text-xl font-serif text-stone-800 font-medium mb-6 px-1">Quick Overview</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <QuickStat label="Pending Approvals" value={`${pendingTeamsCount} Teams`} icon="⏳" />
+          <QuickStat
+            label="Completion Rate"
+            value={
+              events.length
+                ? `${Math.round(
+                    (events.filter((e) => e.state === "COMPLETED").length / events.length) * 100
+                  )}%`
+                : "0%"
+            }
+            icon="📊"
+          />
+          <QuickStat label="Live Events" value={`${metrics.liveEvents}`} icon="🎥" />
+        </div>
       </div>
 
       {/* Recent Activity */}
-      <div className="mt-12 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h3 className="text-gray-900 mb-4">Recent Activity</h3>
+      <div className="mt-12 bg-white rounded-xl shadow-sm border border-stone-200 p-8">
+        <h3 className="text-xl font-serif text-stone-800 font-medium mb-6">Recent Activity</h3>
 
-        <div className="space-y-3">
+        <div className="space-y-4">
           {activities.map((a, i) => (
             <RecentActivityItem key={i} {...a} />
           ))}

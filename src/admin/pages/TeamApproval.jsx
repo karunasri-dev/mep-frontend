@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import SearchFilterBar from "../components/TeamApproval/SearchFilterBar";
 import TeamCard from "../components/TeamApproval/TeamCard";
 import {
   fetchPendingTeamsAPI,
   decideTeamAPI,
+  fetechTeamsByStatus,
 } from "../../services/teams/index";
 import toast from "react-hot-toast";
 
@@ -12,7 +13,7 @@ export default function TeamApproval() {
   const [loading, setLoading] = useState(true);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
+  const [filterStatus, setFilterStatus] = useState("pending");
 
   // 🔹 FETCH PENDING TEAMS
   useEffect(() => {
@@ -47,7 +48,7 @@ export default function TeamApproval() {
     if (!reason) return;
 
     try {
-      await decideTeam(teamId, "REJECTED", reason);
+      await decideTeamAPI(teamId, "REJECTED", reason);
       setTeams((prev) => prev.filter((t) => t._id !== teamId));
       toast.success("Team rejected");
     } catch (err) {
@@ -56,68 +57,81 @@ export default function TeamApproval() {
   };
 
   // 🔹 FILTERING (FRONTEND-ONLY)
-  const filteredTeams = teams.filter((team) => {
-    const s = searchTerm.toLowerCase();
+  const filteredTeams = useMemo(() => {
+    if (filterStatus === "approved" || filterStatus === "rejected")
+      return fetechTeamsByStatus(filterStatus);
 
-    const matchesSearch =
-      team.teamName.toLowerCase().includes(s) ||
-      team.createdBy?.name?.toLowerCase().includes(s);
+    return teams.filter((team) =>
+      team.teamName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [teams, searchTerm, filterStatus]);
 
-    const matchesFilter =
-      filterStatus === "all" || team.status.toLowerCase() === filterStatus;
-
-    return matchesSearch && matchesFilter;
-  });
-
-  const pendingCount = teams.length;
+  const pendingCount = teams.length; // valid now
 
   if (loading) {
-    return <div className="text-center py-12">Loading pending teams…</div>;
+    return (
+      <div className="min-h-screen bg-[#fbf6ee] flex justify-center items-center">
+        <p className="text-stone-600 font-serif">Loading pending teams...</p>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h2 className="text-gray-900 mb-2">Team Approvals</h2>
-        <p className="text-gray-600">
-          Review and approve team registrations
-          {pendingCount > 0 && (
-            <span className="ml-2 inline-flex px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">
-              {pendingCount} pending
-            </span>
-          )}
-        </p>
-      </div>
-
-      <SearchFilterBar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        filterStatus={filterStatus}
-        setFilterStatus={setFilterStatus}
-      />
-
-      <div className="space-y-4">
-        {filteredTeams.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            No pending teams found
+    <div className="min-h-screen bg-[#fbf6ee] p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-serif text-stone-800 font-medium mb-2">
+              Team Approvals
+            </h1>
+            <p className="text-stone-600">
+              Review and approve team registrations
+              {pendingCount > 0 && (
+                <span className="ml-2 inline-flex px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-sm font-medium">
+                  {pendingCount} pending
+                </span>
+              )}
+            </p>
           </div>
-        ) : (
-          filteredTeams.map((team) => (
-            <TeamCard
-              key={team._id}
-              user={{
-                id: team._id,
-                name: team.createdBy?.name,
-                phone: team.createdBy?.mobileNumber,
-                eventName: team.teamName,
-                registrationDate: team.createdAt,
-                status: team.status.toLowerCase(),
-              }}
-              onApprove={() => handleApprove(team._id)}
-              onReject={() => handleReject(team._id)}
-            />
-          ))
-        )}
+        </div>
+
+        {/* Search Bar Wrapper */}
+        <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+          <SearchFilterBar
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filterStatus={filterStatus}
+            setFilterStatus={setFilterStatus}
+          />
+        </div>
+
+        <div className="space-y-4">
+          {filterStatus !== "pending" ? (
+            <div className="text-center py-12 text-stone-500 bg-white rounded-xl border border-stone-200">
+              Approved and rejected teams are not available yet
+            </div>
+          ) : (
+            filteredTeams.map((team) => (
+              <TeamCard
+                key={team._id}
+                user={{
+                  id: team._id,
+                  name: team.teamName,
+                  email: team.createdBy?.email,
+                  phone: team.createdBy?.phone,
+                  eventName: "General Registration", // Placeholder
+                  bullName:
+                    team.bullPairs?.map((b) => b.bullA?.name).join(", ") ||
+                    "N/A",
+                  registrationDate: team.createdAt,
+                  status: team.status,
+                }}
+                onApprove={handleApprove}
+                onReject={handleReject}
+              />
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

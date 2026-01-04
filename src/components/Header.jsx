@@ -30,13 +30,13 @@ const Header = () => {
           >
             <span className="text-2xl font-bold">🐂</span>
           </motion.div>
-          <div>
+          <div className="text-center">
             <h1 className="text-3xl md:text-7xl font-bold tracking-wide text-amber-700">
               Mana Edla Pandalu
             </h1>
           </div>
           <motion.div
-            className="w-10 h-10 md:w-16 md:h-16 bg-teal-600 rounded-full flex items-center justify-center shadow-lg"
+            className="w-10 h-10 md:w-16 md:h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-lg"
             animate={{
               y: ["-10px", "10px", "-10px"],
             }}

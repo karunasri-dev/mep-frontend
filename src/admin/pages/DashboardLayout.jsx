@@ -6,8 +6,17 @@ import Header from "../../components/Header";
 const adminTabs = [
   { id: "home", label: "Dashboard Home", path: "/admin/home" },
   { id: "teams", label: "Teams", path: "/admin/teams" },
-  { id: "users", label: "User Approvals", path: "/admin/users" },
+  {
+    id: "team-approval",
+    label: "Team Approvals",
+    path: "/admin/team-approval",
+  },
   { id: "events", label: "Event Management", path: "/admin/events" },
+  {
+    id: "registrations",
+    label: "Event Registrations",
+    path: "/admin/registrations",
+  },
   { id: "champions", label: "Champions", path: "/admin/champions" },
 ];
 
@@ -15,21 +24,27 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#fbf6ee]">
       {/* HEADER */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-md border-b border-stone-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center py-4">
           <div className="flex items-center gap-3">
-            <Trophy className="w-8 h-8 text-amber-600" />
+            <div className="bg-amber-100 p-2 rounded-lg">
+              <Trophy className="w-6 h-6 text-amber-600" />
+            </div>
             <div>
-              <h1 className="text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600 text-sm">Bull Race Management</p>
+              <h1 className="text-stone-900 font-serif font-bold text-xl leading-none">
+                Admin Dashboard
+              </h1>
+              <p className="text-stone-500 text-xs font-medium tracking-wide mt-1">
+                BULL RACE MANAGEMENT
+              </p>
             </div>
           </div>
           {/* <Header /> */}
 
           <button
-            className="lg:hidden p-2 rounded-md hover:bg-gray-100"
+            className="lg:hidden p-2 rounded-md hover:bg-stone-100 text-stone-600"
             onClick={() => setOpen(!open)}
           >
             {open ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -39,18 +54,20 @@ export default function Dashboard() {
 
       {/* NAVIGATION */}
       <nav
-        className={`lg:block ${open ? "block" : "hidden"} bg-white border-b`}
+        className={`lg:block ${
+          open ? "block" : "hidden"
+        } bg-white border-b border-stone-200`}
       >
-        <div className="max-w-7xl mx-auto px-4 py-3 flex flex-col lg:flex-row gap-2">
+        <div className="max-w-7xl mx-auto px-4 py-2 flex flex-col lg:flex-row gap-1">
           {adminTabs.map((tab) => (
             <NavLink
               key={tab.id}
               to={tab.path}
               className={({ isActive }) =>
-                `px-4 py-2 rounded-lg transition ${
+                `px-4 py-2 rounded-lg transition-all duration-200 font-medium text-sm ${
                   isActive
-                    ? "bg-amber-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-amber-50 text-amber-700 shadow-sm border border-amber-100"
+                    : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
                 }`
               }
               onClick={() => setOpen(false)}

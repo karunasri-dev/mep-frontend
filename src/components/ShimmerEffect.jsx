@@ -1,47 +1,95 @@
-const ShimmerCardH = () => {
-  return (
-    <div className="bg-gray-100 rounded-lg shadow-md p-6">
-      <div className="flex items-center justify-between">
-        {/* Left side — text placeholders */}
-        <div className="flex-1">
-          <div className="h-4 w-3/4 mb-3 rounded shimmer"></div>
-          <div className="h-6 w-1/4 rounded shimmer"></div>
-        </div>
+import React from "react";
 
-        {/* Right side — circular profile placeholder */}
-        <div className="w-16 h-16 rounded-full ml-6 shimmer"></div>
+const Skeleton = ({ width = "w-full", height = "h-4", rounded = "rounded-md", className = "" }) => {
+  return (
+    <div
+      aria-hidden="true"
+      className={`relative overflow-hidden bg-stone-200/60 ${width} ${height} ${rounded} ${className}`}
+    >
+      <div
+        className="
+          pointer-events-none
+          absolute inset-y-0 left-0
+          w-1/2
+          bg-gradient-to-r from-transparent via-white/40 to-transparent
+          animate-shimmer
+        "
+      />
+    </div>
+  );
+};
+
+const CardSkeleton = () => {
+  return (
+    <div aria-busy="true" className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="space-y-3">
+          <Skeleton width="w-24" height="h-3" />
+          <Skeleton width="w-32" height="h-7" />
+        </div>
+        <Skeleton width="w-8" height="h-8" rounded="rounded-full" />
       </div>
     </div>
   );
 };
 
-const ShimmerCardV = () => (
-  <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
-    <div className="flex items-center justify-center mb-6">
-      <div className="w-16 h-16 bg-gray-300 rounded-full"></div>
+const TableSkeleton = ({ rows = 5 }) => {
+  return (
+    <div aria-busy="true" className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden">
+      <table className="w-full text-sm">
+        <thead className="bg-stone-50 border-b border-stone-200">
+          <tr>
+            <th className="px-4 py-3 text-left">
+              <Skeleton width="w-24" height="h-3" />
+            </th>
+            <th className="px-4 py-3 text-left">
+              <Skeleton width="w-20" height="h-3" />
+            </th>
+            <th className="px-4 py-3 text-left">
+              <Skeleton width="w-16" height="h-3" />
+            </th>
+            <th className="px-4 py-3 text-left">
+              <Skeleton width="w-10" height="h-3" />
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-stone-100">
+          {Array.from({ length: rows }).map((_, idx) => (
+            <tr key={idx} className="hover:bg-stone-50 transition-colors">
+              <td className="px-4 py-3">
+                <Skeleton width="w-40" height="h-4" />
+              </td>
+              <td className="px-4 py-3">
+                <Skeleton width="w-32" height="h-4" />
+              </td>
+              <td className="px-4 py-3">
+                <Skeleton width="w-12" height="h-4" />
+              </td>
+              <td className="px-4 py-3 text-right">
+                <Skeleton width="w-16" height="h-4" />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
-    <div className="h-6 bg-gray-300 rounded w-1/2 mx-auto mb-4"></div>
-    <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto mb-4"></div>
-    <div className="space-y-2">
-      <div className="h-3 bg-gray-200 rounded w-3/4 mx-auto"></div>
-    </div>
-  </div>
-);
+  );
+};
 
-const ShimmerTable = () => (
-  <div className="bg-white rounded-lg shadow-md p-6 animate-pulse">
-    <div className="h-8 bg-gray-300 rounded w-1/3 mb-6"></div>
-    <div className="space-y-3">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <div key={i} className="flex space-x-4">
-          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/5"></div>
-        </div>
+const ListSkeleton = ({ items = 5 }) => {
+  return (
+    <div aria-busy="true" className="space-y-3">
+      {Array.from({ length: items }).map((_, idx) => (
+        <Skeleton
+          key={idx}
+          width={idx % 3 === 0 ? "w-3/4" : idx % 3 === 1 ? "w-2/3" : "w-full"}
+          height="h-4"
+        />
       ))}
     </div>
-  </div>
-);
+  );
+};
 
-export { ShimmerCardH, ShimmerCardV, ShimmerTable };
+const ShimmerTable = TableSkeleton;
+
+export { Skeleton, CardSkeleton, TableSkeleton, ListSkeleton, ShimmerTable };

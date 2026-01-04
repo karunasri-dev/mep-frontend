@@ -1,4 +1,4 @@
-import { api } from "../axios";
+import api from "../auth/index";
 
 // ADMIN: fetch pending teams
 export const fetchPendingTeamsAPI = async () => {
@@ -13,6 +13,12 @@ export const decideTeamAPI = async (teamId, decision, rejectionReason) => {
     rejectionReason,
   });
   return res.data.data;
+};
+
+// ADMIN :fetch all by status
+export const fetechTeamsByStatus = async (status) => {
+  const res = await api.get(`/api/teams/${status}`);
+  return res.data;
 };
 
 // User :create team
@@ -40,7 +46,12 @@ export const updateTeamStatusApi = (teamId, status) =>
 
 export const deleteTeamApi = (teamId) => api.delete(`/api/teams/${teamId}`);
 
-export const getUserTeamsApi = () => api.get("/api/teams/my-teams");
+export const getMyTeam = async () => {
+  console.log("get my team api called");
+  const res = await api.get("/api/teams/my-team");
+  console.log("Response of get my teams", res);
+  return res.data;
+};
 
 export const updateTeamApi = (teamId, teamData) =>
   api.put(`/api/teams/${teamId}`, teamData);

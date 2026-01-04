@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { verifyUser } from "../services/auth/index";
+import { verifyUser } from "../services/auth";
 
 const AuthContext = createContext(null);
 
@@ -10,19 +10,14 @@ export function AuthProvider({ children }) {
   const checkAuth = async () => {
     try {
       const res = await verifyUser();
-
-      if (!res?.user) {
-        throw new Error("No user in session");
-      }
-
       setUser(res.user);
     } catch (err) {
+      // Only logout on auth failure
       if (err.response?.status === 401) {
-        console.info("No active session");
+        setUser(null);
       } else {
         console.error("Auth check failed:", err);
       }
-      setUser(null);
     } finally {
       setLoading(false);
     }
@@ -33,22 +28,12 @@ export function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    const handleAuthRefreshed = (e) => {
-      const refreshedUser = e.detail?.user;
-      if (refreshedUser) {
-        setUser(refreshedUser);
-      }
-    };
-
     const handleAuthLogout = () => {
       setUser(null);
     };
 
-    window.addEventListener("auth-refreshed", handleAuthRefreshed);
     window.addEventListener("auth-logout", handleAuthLogout);
-
     return () => {
-      window.removeEventListener("auth-refreshed", handleAuthRefreshed);
       window.removeEventListener("auth-logout", handleAuthLogout);
     };
   }, []);

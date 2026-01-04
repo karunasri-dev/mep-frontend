@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import TeamsHeader from "../components/ActiveTeams/TeamsHeader";
 import TeamsSearchBar from "../components/ActiveTeams/TeamsSearchBar";
 import TeamCard from "../components/ActiveTeams/TeamCard";
 import { useNavigate } from "react-router-dom";
+import { getActiveTeamsAPI } from "../../services/teams/index";
 
 export default function ActiveTeams() {
   const navigate = useNavigate();
@@ -14,134 +15,90 @@ export default function ActiveTeams() {
     navigate(`/admin/teams-details/${teamId}`);
   };
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [teamsRaw, setTeamsRaw] = useState([]);
 
-  const teams = [
-    {
-      id: "1",
-      name: "Thunder Riders",
-      owner: "Rajesh Kumar",
-      bullName: "Thunderbolt",
-      location: "Mangalore",
-      members: 8,
-      eventsParticipated: 12,
-      wins: 5,
-      status: "active",
-      image: "🐂",
-    },
-    {
-      id: "2",
-      name: "Lightning Storm",
-      owner: "Suresh Patil",
-      bullName: "Lightning",
-      location: "Udupi",
-      members: 6,
-      eventsParticipated: 10,
-      wins: 3,
-      status: "active",
-      image: "⚡",
-    },
-    {
-      id: "3",
-      name: "Desert Warriors",
-      owner: "Mahesh Naik",
-      bullName: "Storm",
-      location: "Kundapur",
-      members: 7,
-      eventsParticipated: 15,
-      wins: 7,
-      status: "active",
-      image: "🏜️",
-    },
-    {
-      id: "4",
-      name: "Coastal Champions",
-      owner: "Prakash Shetty",
-      bullName: "Cyclone",
-      location: "Surathkal",
-      members: 9,
-      eventsParticipated: 18,
-      wins: 9,
-      status: "active",
-      image: "🌊",
-    },
-    {
-      id: "5",
-      name: "Mountain Kings",
-      owner: "Ganesh Hegde",
-      bullName: "Thunder",
-      location: "Dharmasthala",
-      members: 5,
-      eventsParticipated: 8,
-      wins: 2,
-      status: "active",
-      image: "⛰️",
-    },
-    {
-      id: "6",
-      name: "River Runners",
-      owner: "Anil Rao",
-      bullName: "Rapids",
-      location: "Manipal",
-      members: 7,
-      eventsParticipated: 11,
-      wins: 4,
-      status: "active",
-      image: "🌊",
-    },
-    {
-      id: "7",
-      name: "Forest Flames",
-      owner: "Kiran Poojary",
-      bullName: "Blaze",
-      location: "Karkala",
-      members: 6,
-      eventsParticipated: 9,
-      wins: 3,
-      status: "active",
-      image: "🔥",
-    },
-    {
-      id: "8",
-      name: "Golden Eagles",
-      owner: "Mohan Bhandary",
-      bullName: "Eagle",
-      location: "Puttur",
-      members: 8,
-      eventsParticipated: 14,
-      wins: 6,
-      status: "active",
-      image: "🦅",
-    },
-  ];
+  useEffect(() => {
+    const load = async () => {
+      try {
+        setLoading(true);
+        const data = await getActiveTeamsAPI();
+        setTeamsRaw(data || []);
+      } catch {
+        setTeamsRaw([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
 
-  const filteredTeams = teams.filter(
-    (team) =>
-      team.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      team.owner.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      team.bullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      team.location.toLowerCase().includes(searchTerm.toLowerCase())
+  const teams = useMemo(() => {
+    return (teamsRaw || []).map((t) => {
+      const firstPair =
+        Array.isArray(t.bullPairs) && t.bullPairs.length > 0 ? t.bullPairs[0] : null;
+      const bullName =
+        firstPair?.bullA?.name || firstPair?.bullB?.name || "N/A";
+      const members = Array.isArray(t.teamMembers) ? t.teamMembers.length : 0;
+      return {
+        id: t._id,
+        name: t.teamName,
+        owner: t.createdBy?.name || "Unknown Owner",
+        bullName,
+        location: t.location || "—",
+        members,
+        eventsParticipated: t.eventsParticipated || 0,
+        wins: t.wins || 0,
+        status: t.status?.toLowerCase() || "active",
+        image: "🐂",
+      };
+    });
+  }, [teamsRaw]);
+
+  const filteredTeams = teams.filter((team) =>
+    team.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <TeamsHeader onBack={onBack} activeCount={teams.length} />
+    <div className="min-h-screen bg-[#fbf6ee] p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-serif text-stone-800 font-medium">
+              Active Teams
+            </h1>
+            <p className="text-stone-600 mt-1">
+              Manage and view all registered teams
+            </p>
+          </div>
+          <button
+            onClick={onBack}
+            className="px-4 py-2 text-amber-700 hover:bg-amber-50 rounded-lg transition-colors font-medium"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
 
-      <TeamsSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        {/* Search Bar Wrapper */}
+        <div className="bg-white p-4 rounded-xl border border-stone-200 shadow-sm">
+          <TeamsSearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+        </div>
 
-      {/* Teams Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredTeams.length === 0 ? (
-          <div className="col-span-full text-center py-12 text-gray-500">
-            No teams found matching your search
+        {loading ? (
+          <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
+            <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full mb-4"></div>
+            <p className="text-stone-500 font-medium">Loading active teams...</p>
           </div>
         ) : (
-          filteredTeams.map((team) => (
-            <TeamCard
-              key={team.id}
-              team={team}
-              onClick={() => onNavigateToTeamDetails(team.id)}
-            />
-          ))
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredTeams.map((team) => (
+              <TeamCard
+                key={team.id}
+                team={team}
+                onClick={() => onNavigateToTeamDetails(team.id)}
+              />
+            ))}
+          </div>
         )}
       </div>
     </div>

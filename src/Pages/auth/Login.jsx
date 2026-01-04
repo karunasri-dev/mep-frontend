@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
 import { motion } from "motion/react";
 import { Phone, Lock, ArrowRight, Zap } from "lucide-react";
 import toast from "react-hot-toast";
