@@ -4,6 +4,7 @@ import {
   updateRegistrationStatus,
 } from "../../services/events/eventRegistraion.api";
 import { getAllEvents } from "../../services/events/event.api";
+import { getTeamByIdApi } from "../../services/teams/index";
 import { Check, X, ChevronDown } from "lucide-react";
 import { toast } from "react-hot-toast";
 
@@ -50,7 +51,36 @@ export default function AdminEventRegistrations() {
     setLoading(true);
     try {
       const res = await fetchEventRegistrations(eventId);
-      setRegistrations(res.data.data);
+      const regs = res.data.data || [];
+
+      const missingTeamIds = [
+        ...new Set(
+          regs
+            .filter((r) => !Array.isArray(r.team?.bullPairs) || r.team.bullPairs.length === 0)
+            .map((r) => (r.team?._id || r.team))
+            .filter(Boolean)
+        ),
+      ];
+
+      let teamMap = new Map();
+      if (missingTeamIds.length > 0) {
+        const fetched = await Promise.all(
+          missingTeamIds.map(async (id) => {
+            const tRes = await getTeamByIdApi(id);
+            return tRes.data.data;
+          })
+        );
+        teamMap = new Map(fetched.map((t) => [t._id, t]));
+      }
+
+      const enriched = regs.map((r) => {
+        const t = r.team;
+        const teamId = t?._id || t;
+        const fill = (!t || !Array.isArray(t.bullPairs) || t.bullPairs.length === 0) ? teamMap.get(teamId) : null;
+        return fill ? { ...r, team: { _id: fill._id, teamName: fill.teamName, bullPairs: fill.bullPairs } } : r;
+      });
+
+      setRegistrations(enriched);
     } catch (err) {
       console.error("Failed to load registrations", err);
       toast.error("Failed to load registrations");
@@ -131,7 +161,7 @@ export default function AdminEventRegistrations() {
             >
               {events.map((evt) => (
                 <option key={evt._id} value={evt._id}>
-                  {evt.name}
+                  {evt.title}
                 </option>
               ))}
               {events.length === 0 && <option>No events found</option>}
@@ -180,19 +210,50 @@ export default function AdminEventRegistrations() {
                     <tr key={reg._id} className="hover:bg-stone-50 transition-colors">
                       <td className="px-6 py-4">
                         <div className="font-medium text-stone-800">
-                          {reg.teamId?.teamName || "Unknown Team"}
+                          {reg.team?.teamName || "Unknown Team"}
                         </div>
                         <div className="text-sm text-stone-500">
-                          {reg.teamId?.owner?.name}
+                          Captain: {reg.captainName || "N/A"}
+                        </div>
+                        <div className="text-xs text-stone-400">
+                          Reg. by: {reg.registeredBy?.username || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-stone-600 text-sm">
-                        {reg.bulls?.map(b => b.name).join(" & ") || "N/A"}
+                        {(() => {
+                          const selectedIds = (reg.bullPairs || []).map((id) =>
+                            typeof id === "string" ? id : id?.toString()
+                          );
+                          const pairs = (reg.team?.bullPairs || []).filter((bp) =>
+                            selectedIds.includes(bp?._id?.toString())
+                          );
+                          if (!pairs.length) return "N/A";
+                          return pairs
+                            .map((bp) => `${bp.bullA?.name} & ${bp.bullB?.name}`)
+                            .join(", ");
+                        })()}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 border border-stone-200">
-                          {reg.category}
-                        </span>
+                        {(() => {
+                          const selectedIds = (reg.bullPairs || []).map((id) =>
+                            typeof id === "string" ? id : id?.toString()
+                          );
+                          const pairs = (reg.team?.bullPairs || []).filter((bp) =>
+                            selectedIds.includes(bp?._id?.toString())
+                          );
+                          const categories = [
+                            ...new Set(
+                              pairs.map((bp) => bp?.category?.value).filter(Boolean)
+                            ),
+                          ];
+                          return categories.length ? (
+                            <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-stone-100 text-stone-600 border border-stone-200">
+                              {categories.join(", ")}
+                            </span>
+                          ) : (
+                            <span className="text-stone-500 text-sm">N/A</span>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4">
                         <span

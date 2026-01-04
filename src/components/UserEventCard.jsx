@@ -25,7 +25,22 @@ export default function UserEventCard({ event, onRegister, canRegister }) {
         {new Date(event.timings.to).toLocaleString()}
       </p>
 
-      <p className="text-sm mt-1 text-stone-500">{event.location}</p>
+      <div className="text-sm mt-1 text-stone-600">
+        {event.location?.name}
+        {event.location?.googleMapUrl && (
+          <>
+            {" · "}
+            <a
+              href={event.location.googleMapUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-amber-700 hover:underline"
+            >
+              View on Google Maps
+            </a>
+          </>
+        )}
+      </div>
 
       <div className="mt-3 flex items-center justify-between">
         <p className="font-medium text-stone-800">
@@ -39,7 +54,7 @@ export default function UserEventCard({ event, onRegister, canRegister }) {
         </Link>
       </div>
 
-      {event.state === "UPCOMING" && canRegister && (
+      {event.state !== "COMPLETED" && canRegister && (
         <button
           onClick={() => onRegister(event)}
           className="btn-primary w-full mt-4"

@@ -5,7 +5,8 @@ export default function EventForm({ initialData, onSubmit, onClose }) {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    location: "",
+    locationName: "",
+    googleMapUrl: "",
     from: "",
     to: "",
     prizeMoney: "",
@@ -16,7 +17,8 @@ export default function EventForm({ initialData, onSubmit, onClose }) {
       setFormData({
         title: initialData.title,
         description: initialData.description || "",
-        location: initialData.location,
+        locationName: initialData.location?.name || "",
+        googleMapUrl: initialData.location?.googleMapUrl || "",
         from: initialData.timings.from.slice(0, 16),
         to: initialData.timings.to.slice(0, 16),
         prizeMoney: initialData.prizeMoney,
@@ -26,10 +28,16 @@ export default function EventForm({ initialData, onSubmit, onClose }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.locationName || !formData.googleMapUrl) {
+      return;
+    }
     onSubmit({
       title: formData.title,
       description: formData.description,
-      location: formData.location,
+      location: {
+        name: formData.locationName,
+        googleMapUrl: formData.googleMapUrl,
+      },
       timings: {
         from: new Date(formData.from),
         to: new Date(formData.to),
@@ -84,17 +92,31 @@ export default function EventForm({ initialData, onSubmit, onClose }) {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-stone-700 mb-1.5">Location</label>
-              <input
-                className="w-full p-2.5 border border-stone-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none text-stone-700 transition-all placeholder:text-stone-400"
-                required
-                placeholder="e.g. Village Ground, District"
-                value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
-                }
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1.5">Location Name</label>
+                <input
+                  className="w-full p-2.5 border border-stone-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none text-stone-700 transition-all placeholder:text-stone-400"
+                  required
+                  placeholder="e.g. Village Ground, District"
+                  value={formData.locationName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, locationName: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-1.5">Google Maps URL</label>
+                <input
+                  className="w-full p-2.5 border border-stone-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 outline-none text-stone-700 transition-all placeholder:text-stone-400"
+                  required
+                  placeholder="https://maps.google.com/..."
+                  value={formData.googleMapUrl}
+                  onChange={(e) =>
+                    setFormData({ ...formData, googleMapUrl: e.target.value })
+                  }
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

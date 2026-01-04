@@ -70,6 +70,7 @@ export default function Login() {
           transition={{ delay: 0.2 }}
           className="text-center mb-6 sm:mb-8"
         >
+          {/*
           <motion.div
             animate={{
               scale: [1, 1.1, 1],
@@ -92,6 +93,7 @@ export default function Login() {
               />
             </div>
           </motion.div>
+          */}
 
           <motion.h2
             animate={{ rotate: [0, 2, -2, 0] }}

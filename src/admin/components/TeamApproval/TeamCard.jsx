@@ -1,6 +1,7 @@
 import { Check, X, Calendar, Phone, Mail } from "lucide-react";
 
 export default function TeamCard({ user, onApprove, onReject }) {
+  const status = user.status?.toLowerCase();
   return (
     <div className="bg-white border border-stone-200 rounded-xl p-6 hover:border-amber-400 hover:shadow-md transition-all duration-300">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
@@ -50,7 +51,7 @@ export default function TeamCard({ user, onApprove, onReject }) {
         </div>
 
         <div className="flex items-center gap-3 pt-4 lg:pt-0 border-t lg:border-t-0 border-stone-100">
-          {user.status === "pending" ? (
+          {status === "pending" ? (
             <>
               <button
                 onClick={() => onApprove(user.id)}
@@ -71,7 +72,7 @@ export default function TeamCard({ user, onApprove, onReject }) {
           ) : (
             <span
               className={`px-4 py-2 rounded-lg font-medium text-sm border ${
-                user.status === "approved"
+                status === "approved"
                   ? "bg-emerald-50 text-emerald-700 border-emerald-100"
                   : "bg-red-50 text-red-700 border-red-100"
               }`}
