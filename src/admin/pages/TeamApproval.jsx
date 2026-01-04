@@ -1,10 +1,9 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import SearchFilterBar from "../components/TeamApproval/SearchFilterBar";
 import TeamCard from "../components/TeamApproval/TeamCard";
 import {
-  fetchPendingTeamsAPI,
-  decideTeamAPI,
   fetechTeamsByStatus,
+  decideTeamAPI,
 } from "../../services/teams/index";
 import toast from "react-hot-toast";
 
@@ -15,21 +14,25 @@ export default function TeamApproval() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("pending");
 
-  // 🔹 FETCH PENDING TEAMS
+  // 🔹 FETCH TEAMS BY STATUS (authoritative backend filter)
   useEffect(() => {
     const loadTeams = async () => {
       try {
-        const data = await fetchPendingTeamsAPI();
-        setTeams(data);
+        setLoading(true);
+        const res = await fetechTeamsByStatus(filterStatus);
+        const data = res.data || res; // accommodate service return shape
+        setTeams(Array.isArray(data) ? data : []);
       } catch (err) {
-        toast.error(err.message || "Failed to load pending teams");
+        toast.error(
+          err?.response?.data?.message || err.message || "Failed to load teams"
+        );
       } finally {
         setLoading(false);
       }
     };
 
     loadTeams();
-  }, []);
+  }, [filterStatus]);
 
   // 🔹 APPROVE
   const handleApprove = async (teamId) => {
@@ -56,17 +59,20 @@ export default function TeamApproval() {
     }
   };
 
-  // 🔹 FILTERING (FRONTEND-ONLY)
-  const filteredTeams = useMemo(() => {
-    if (filterStatus === "approved" || filterStatus === "rejected")
-      return fetechTeamsByStatus(filterStatus);
+  // 🔹 SEARCH (frontend-only); status filtering comes from backend
+  const filteredTeams = teams.filter((team) => {
+    const s = searchTerm.toLowerCase();
 
-    return teams.filter((team) =>
-      team.teamName.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [teams, searchTerm, filterStatus]);
+    const matchesSearch =
+      team.teamName.toLowerCase().includes(s) ||
+      team.createdBy?.name?.toLowerCase().includes(s);
 
-  const pendingCount = teams.length; // valid now
+    return matchesSearch;
+  });
+
+  const pendingCount = teams.filter(
+    (t) => (t.status || "").toUpperCase() === "PENDING"
+  ).length;
 
   if (loading) {
     return (
@@ -106,9 +112,9 @@ export default function TeamApproval() {
         </div>
 
         <div className="space-y-4">
-          {filterStatus !== "pending" ? (
+          {filteredTeams.length === 0 ? (
             <div className="text-center py-12 text-stone-500 bg-white rounded-xl border border-stone-200">
-              Approved and rejected teams are not available yet
+              No teams found for selected filter.
             </div>
           ) : (
             filteredTeams.map((team) => (

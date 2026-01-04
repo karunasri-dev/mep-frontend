@@ -17,7 +17,7 @@ export const decideTeamAPI = async (teamId, decision, rejectionReason) => {
 
 // ADMIN :fetch all by status
 export const fetechTeamsByStatus = async (status) => {
-  const res = await api.get(`/api/teams/${status}`);
+  const res = await api.get(`/api/teams/teams/${status}`);
   return res.data;
 };
 

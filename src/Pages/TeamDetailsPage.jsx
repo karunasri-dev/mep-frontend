@@ -184,23 +184,16 @@ export default function TeamDetailsPage() {
                         </div>
                         <div>
                           <h3 className="font-serif text-lg text-stone-800">
-                            {pair.bullA.name} & {pair.bullB.name}
+                            {pair?.bullA?.name || "—"} & {pair?.bullB?.name || "—"}
                           </h3>
                           <p className="text-sm text-stone-500">
-                            Category: {pair.category.label}
+                            Category: {pair?.category?.type || "—"} / {pair?.category?.value || "—"}
                           </p>
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-2 text-sm text-stone-600 bg-stone-50 p-3 rounded-lg">
-                        <div>
-                          <span className="block text-xs text-stone-400">Jockey</span>
-                          {pair.jockey.name}
-                        </div>
-                        <div>
-                          <span className="block text-xs text-stone-400">Helper</span>
-                          {pair.helper.name}
-                        </div>
+                      <div className="text-xs text-stone-500 bg-stone-50 p-3 rounded-lg">
+                        Bull pair details shown from team record
                       </div>
                     </div>
                   ))}

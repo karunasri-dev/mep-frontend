@@ -118,8 +118,12 @@ export default function EventRegistrationForm({
       });
 
       onClose();
-    } catch {
-      setError("Registration failed. Try again.");
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Registration failed. Try again.";
+      setError(msg);
     } finally {
       setSubmitting(false);
     }

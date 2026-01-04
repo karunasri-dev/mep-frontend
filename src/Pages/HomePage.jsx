@@ -12,7 +12,9 @@ import {
   Contact,
   CalendarDays,
   Trophy,
+  Instagram,
 } from "lucide-react";
+import WhatsAppIcon from "../assets/whatsapp.svg?react";
 
 const YOUTUBE_LIVE_URL = "https://www.youtube.com/@pnr0463?si=_w2AdJJgZFGfh7aO";
 const INSTAGRAM_URL =
@@ -68,7 +70,7 @@ const HomePage = ({ loading }) => {
       to: "/events",
     },
     {
-      title: "Live Events",
+      title: "Youtube Live",
       value: 1,
       icon: YoutubeIcon,
       accentBorder: "border-amber-600",
@@ -95,11 +97,15 @@ const HomePage = ({ loading }) => {
       expandable: true,
       actions: [
         {
+          icon: Instagram,
           label: "Instagram",
+          color: "text-rose-500",
           onClick: () => window.open(INSTAGRAM_URL, "_blank"),
         },
         {
+          icon: Contact,
           label: "WhatsApp",
+          color: "text-green-500",
           onClick: () => window.open(WHATSAPP_URL, "_blank"),
         },
       ],

@@ -5,6 +5,8 @@ import EventRegistrationForm from "../components/EventRegistrationForm";
 import { getAllEvents } from "../services/events/event.api";
 import { getMyTeam } from "../services/teams/index";
 import { registerForEvent } from "../services/events/eventRegistraion.api";
+import api from "../services/auth/index";
+import { toast } from "react-hot-toast";
 
 export default function EventsPage() {
   const [events, setEvents] = useState([]);
@@ -12,6 +14,7 @@ export default function EventsPage() {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [alreadyRegistered, setAlreadyRegistered] = useState({});
 
   // FETCH EVENTS + TEAM
 
@@ -27,8 +30,25 @@ export default function EventsPage() {
           const teamRes = await getMyTeam();
           console.log("teamRes", teamRes.data);
           setTeam(teamRes.data);
+          const evs = eventsRes.data.data || [];
+          if (teamRes.data && evs.length) {
+            const checks = await Promise.all(
+              evs.map((e) =>
+                api.get(`/api/events/${e._id}/my-registration`).then((r) => ({
+                  eventId: e._id,
+                  registered: Boolean(r.data.data),
+                }))
+              )
+            );
+            const map = {};
+            checks.forEach((c) => (map[c.eventId] = c.registered));
+            setAlreadyRegistered(map);
+          } else {
+            setAlreadyRegistered({});
+          }
         } catch {
           setTeam(null);
+          setAlreadyRegistered({});
         }
       } catch {
         setError("Failed to load events");
@@ -45,10 +65,10 @@ export default function EventsPage() {
   const handleRegister = async (data) => {
     try {
       await registerForEvent(selectedEvent._id, data);
-      alert("Registered successfully (Pending approval)");
+      toast.success("Registered successfully (Pending approval)");
       setSelectedEvent(null);
     } catch (err) {
-      alert(err.response?.data?.message || "Registration failed");
+      toast.error(err.response?.data?.message || "Registration failed");
     }
   };
 
@@ -89,7 +109,7 @@ export default function EventsPage() {
           <UserEventCard
             key={event._id}
             event={event}
-            canRegister={Boolean(team)}
+            canRegister={Boolean(team) && !alreadyRegistered[event._id]}
             onRegister={setSelectedEvent}
           />
         ))

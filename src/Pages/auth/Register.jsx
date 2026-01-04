@@ -66,6 +66,7 @@ export default function Register() {
           transition={{ delay: 0.2 }}
           className="mb-3 text-center"
         >
+          {/* /* 
           <motion.div
             animate={{
               scale: [1, 1.1, 1],
@@ -88,6 +89,7 @@ export default function Register() {
               />
             </div>
           </motion.div>
+          */}
 
           <motion.h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-100 mb-2">
             MANAEDLAPANDALU

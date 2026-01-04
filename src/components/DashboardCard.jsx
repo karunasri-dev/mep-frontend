@@ -16,14 +16,16 @@ const DashboardCard = ({
 }) => {
   const [open, setOpen] = useState(false);
 
-  const handleClick = () => {
+  const handleClick = (e) => {
     if (to) return;
+    e.stopPropagation();
     if (onClick) onClick();
     else if (expandable) setOpen((prev) => !prev);
   };
 
   const Wrapper = to ? Link : "div";
   const iconClass = iconColor ? iconColor : "text-amber-700";
+  const SafeIcon = typeof Icon === "function" ? Icon : null;
 
   return (
     <Wrapper
@@ -45,7 +47,6 @@ const DashboardCard = ({
           )}
         </div>
 
-        {/* <Icon className={`w-6 h-6 ${iconClass}`} /> */}
         {pulse ? (
           <div className="relative w-12 h-12">
             <span
@@ -60,7 +61,7 @@ const DashboardCard = ({
       </div>
 
       {open && actions.length > 0 && (
-        <div className="mt-4 space-y-2 border-t pt-3">
+        <div className="mt-4 pt-3 flex gap-3">
           {actions.map((action, idx) => (
             <button
               key={idx}
@@ -68,8 +69,13 @@ const DashboardCard = ({
                 e.stopPropagation();
                 action.onClick();
               }}
-              className="block text-sm text-blue-700 hover:underline"
+              className="text-sm text-blue-700 hover:underline flex items-center gap-2"
             >
+              <action.icon className={`w-6 h-6 ${action.color}`} />
+
+              {/* {typeof action.icon === "function" && (
+                <action.icon className={`w-6 h-6 ${action.color}`} />
+              )} */}
               {action.label}
             </button>
           ))}
