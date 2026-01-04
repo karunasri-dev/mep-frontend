@@ -1,4 +1,5 @@
 import { Edit2, Trash2, Calendar, MapPin, Trophy } from "lucide-react";
+import { Link } from "react-router-dom";
 import StatusBadge from "./StatusBadge";
 import { updateEventState } from "../../../services/events/event.api";
 import { toast } from "react-hot-toast";
@@ -30,7 +31,9 @@ export default function EventCard({ event, onEdit, onDelete, onStateUpdate }) {
     <div className="bg-white border border-stone-200 rounded-xl p-6 hover:border-amber-400 hover:shadow-md transition-all duration-300 flex flex-col h-full">
       <div className="flex justify-between items-start mb-4">
         <h3 className="text-xl font-serif text-stone-800 font-medium line-clamp-1" title={event.title}>
-          {event.title}
+          <Link to={`/admin/events/${event._id}`} className="hover:text-amber-700">
+            {event.title}
+          </Link>
         </h3>
         <StatusBadge status={event.state} />
       </div>
@@ -104,6 +107,13 @@ export default function EventCard({ event, onEdit, onDelete, onStateUpdate }) {
             <Trash2 className="w-3.5 h-3.5" /> Delete
           </button>
         </div>
+
+        <Link
+          to={`/admin/events/${event._id}`}
+          className="mt-3 inline-flex items-center justify-center gap-2 py-2 px-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-medium"
+        >
+          Manage Days & Scores
+        </Link>
       </div>
     </div>
   );

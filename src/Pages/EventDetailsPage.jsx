@@ -22,8 +22,9 @@ import {
 } from "lucide-react";
 
 export default function EventDetailsPage() {
-  const { id } = useParams();
-  console.log("Event Id", id);
+  const routeParams = useParams();
+  const eventId = routeParams.id || routeParams.eventId;
+  console.log("Event Id", eventId);
   const [event, setEvent] = useState(null);
   const [days, setDays] = useState([]);
   const [selectedDayId, setSelectedDayId] = useState(null);
@@ -32,23 +33,25 @@ export default function EventDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("days"); // 'days'
   const [errorMsg, setErrorMsg] = useState("");
-  const navigate = useNavigate();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     loadData();
-  }, [id, isAdminRoute]);
+  }, [eventId, isAdminRoute]);
 
   const loadData = async () => {
     setLoading(true);
 
     try {
-      const eventPromise = getEventById(id);
+      const eventPromise = getEventById(eventId);
       const daysPromise = isAdminRoute
-        ? getEventDaysAdmin(id)
-        : getEventDaysPublic(id);
-      const [eventRes, daysRes] = await Promise.all([eventPromise, daysPromise]);
+        ? getEventDaysAdmin(eventId)
+        : getEventDaysPublic(eventId);
+      const [eventRes, daysRes] = await Promise.all([
+        eventPromise,
+        daysPromise,
+      ]);
       setEvent(eventRes.data.data);
       const d = daysRes.data.data || [];
       setDays(d);
@@ -169,8 +172,19 @@ export default function EventDetailsPage() {
                 </span>
               </div>
               {days.length === 0 ? (
-                <div className="p-8 text-center text-stone-500">
-                  No event days yet.
+                <div className="p-4">
+                  <div className="p-8 text-center text-stone-500">
+                    No event days yet.
+                  </div>
+                  {isAdminRoute && (
+                    <CreateDayForm
+                      eventId={eventId}
+                      onCreated={(day) => {
+                        setDays((prev) => [...prev, day]);
+                        setSelectedDayId(day._id);
+                      }}
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="p-4">
@@ -197,7 +211,7 @@ export default function EventDetailsPage() {
                   />
                   {isAdminRoute && (
                     <CreateDayForm
-                      eventId={id}
+                      eventId={eventId}
                       onCreated={(day) => {
                         setDays((prev) => [...prev, day]);
                         setSelectedDayId(day._id);
@@ -206,7 +220,7 @@ export default function EventDetailsPage() {
                   )}
                   {selectedDayId && (
                     <DayBullPairsSection
-                      eventId={id}
+                      eventId={eventId}
                       dayId={selectedDayId}
                       dayStatus={selectedDay?.status}
                       entries={dayEntries}
@@ -224,12 +238,14 @@ export default function EventDetailsPage() {
   );
 }
 
-function AdminControls({ entry, onUpdated }) {
+function AdminControls({ entry, onUpdated, dayStatus }) {
   const [perf, setPerf] = useState({
     rockWeightKg: entry.performance?.rockWeightKg || "",
     distanceMeters: entry.performance?.distanceMeters || "",
     timeSeconds: entry.performance?.timeSeconds || "",
   });
+  const [timeUnit, setTimeUnit] = useState("minutes"); // minutes or seconds
+  const [editing, setEditing] = useState(false);
 
   const startPlaying = async () => {
     try {
@@ -246,8 +262,23 @@ function AdminControls({ entry, onUpdated }) {
   };
   const complete = async () => {
     try {
-      const res = await updateDayBullPairStatus(entry._id, "COMPLETED");
-      onUpdated(res.data.data);
+      const hasAny =
+        perf.rockWeightKg !== "" ||
+        perf.distanceMeters !== "" ||
+        perf.timeSeconds !== "";
+      if (hasAny) {
+        const seconds =
+          timeUnit === "minutes"
+            ? Number(perf.timeSeconds) * 60
+            : Number(perf.timeSeconds);
+        await updateDayBullPairPerformance(entry._id, {
+          rockWeightKg: Number(perf.rockWeightKg),
+          distanceMeters: Number(perf.distanceMeters),
+          timeSeconds: seconds,
+        });
+      }
+      const resStatus = await updateDayBullPairStatus(entry._id, "COMPLETED");
+      onUpdated(resStatus.data.data);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -258,10 +289,14 @@ function AdminControls({ entry, onUpdated }) {
   };
   const savePerformance = async () => {
     try {
+      const seconds =
+        timeUnit === "minutes"
+          ? Number(perf.timeSeconds) * 60
+          : Number(perf.timeSeconds);
       const res = await updateDayBullPairPerformance(entry._id, {
         rockWeightKg: Number(perf.rockWeightKg),
         distanceMeters: Number(perf.distanceMeters),
-        timeSeconds: Number(perf.timeSeconds),
+        timeSeconds: seconds,
       });
       onUpdated(res.data.data);
     } catch (err) {
@@ -310,12 +345,23 @@ function AdminControls({ entry, onUpdated }) {
               type="number"
               min="0"
               className="p-2 border border-stone-200 rounded-lg text-xs"
-              placeholder="Time s"
+              placeholder={timeUnit === "minutes" ? "Time min" : "Time s"}
               value={perf.timeSeconds}
               onChange={(e) =>
                 setPerf({ ...perf, timeSeconds: e.target.value })
               }
             />
+          </div>
+          <div className="text-xs text-stone-600">
+            <label className="mr-2">Time unit:</label>
+            <select
+              value={timeUnit}
+              onChange={(e) => setTimeUnit(e.target.value)}
+              className="border border-stone-200 rounded px-2 py-1"
+            >
+              <option value="minutes">Minutes</option>
+              <option value="seconds">Seconds</option>
+            </select>
           </div>
           <div className="flex gap-2">
             <button
@@ -338,6 +384,117 @@ function AdminControls({ entry, onUpdated }) {
           Played at {new Date(entry.playedAt).toLocaleString()}
         </div>
       )}
+      {entry.gameStatus === "COMPLETED" &&
+        !entry.isWinner &&
+        dayStatus !== "COMPLETED" && (
+          <>
+            {!editing ? (
+              <button
+                onClick={() => {
+                  setEditing(true);
+                  setPerf({
+                    rockWeightKg: entry.performance?.rockWeightKg ?? "",
+                    distanceMeters: entry.performance?.distanceMeters ?? "",
+                    timeSeconds:
+                      timeUnit === "minutes"
+                        ? (entry.performance?.timeSeconds ?? 0) / 60
+                        : entry.performance?.timeSeconds ?? "",
+                  });
+                }}
+                className="px-3 py-1 bg-stone-800 text-white rounded-lg text-xs hover:bg-stone-900"
+              >
+                Edit Score
+              </button>
+            ) : (
+              <div className="flex flex-col gap-2 w-full md:w-80">
+                <div className="grid grid-cols-3 gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    className="p-2 border border-stone-200 rounded-lg text-xs"
+                    placeholder="Rock kg"
+                    value={perf.rockWeightKg}
+                    onChange={(e) =>
+                      setPerf({ ...perf, rockWeightKg: e.target.value })
+                    }
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    className="p-2 border border-stone-200 rounded-lg text-xs"
+                    placeholder="Distance m"
+                    value={perf.distanceMeters}
+                    onChange={(e) =>
+                      setPerf({ ...perf, distanceMeters: e.target.value })
+                    }
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    className="p-2 border border-stone-200 rounded-lg text-xs"
+                    placeholder={timeUnit === "minutes" ? "Time min" : "Time s"}
+                    value={perf.timeSeconds}
+                    onChange={(e) =>
+                      setPerf({ ...perf, timeSeconds: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="text-xs text-stone-600">
+                  <label className="mr-2">Time unit:</label>
+                  <select
+                    value={timeUnit}
+                    onChange={(e) => setTimeUnit(e.target.value)}
+                    className="border border-stone-200 rounded px-2 py-1"
+                  >
+                    <option value="minutes">Minutes</option>
+                    <option value="seconds">Seconds</option>
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={async () => {
+                      const confirmed = window.confirm("Save edited score?");
+                      if (!confirmed) return;
+                      try {
+                        const seconds =
+                          timeUnit === "minutes"
+                            ? Number(perf.timeSeconds) * 60
+                            : Number(perf.timeSeconds);
+                        const res = await updateDayBullPairPerformance(
+                          entry._id,
+                          {
+                            rockWeightKg: Number(perf.rockWeightKg),
+                            distanceMeters: Number(perf.distanceMeters),
+                            timeSeconds: seconds,
+                          }
+                        );
+                        onUpdated(res.data.data);
+                        setEditing(false);
+                      } catch (err) {
+                        const msg =
+                          err?.response?.data?.message ||
+                          err?.message ||
+                          "Failed to save changes";
+                        import("react-hot-toast").then(({ toast }) =>
+                          toast.error(msg)
+                        );
+                      }
+                    }}
+                    className="px-3 py-1 bg-stone-800 text-white rounded-lg text-xs hover:bg-stone-900"
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="px-3 py-1 bg-stone-100 text-stone-700 rounded-lg text-xs hover:bg-stone-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       {entry.gameStatus === "COMPLETED" && (
         <button
           onClick={async () => {
@@ -487,14 +644,25 @@ function DayBullPairsSection({
           <button
             onClick={() => setAdding((v) => !v)}
             className="px-3 py-2 bg-stone-800 text-white rounded-lg text-sm"
-            disabled={dayStatus !== "UPCOMING"}
+            disabled={dayStatus === "COMPLETED"}
           >
-            {dayStatus !== "UPCOMING"
-              ? "Selection Locked"
+            {dayStatus === "COMPLETED"
+              ? "Day Completed"
               : adding
               ? "Close Selection"
               : "Add BullPairs"}
           </button>
+          // <button
+          //   onClick={() => setAdding((v) => !v)}
+          //   className="px-3 py-2 bg-stone-800 text-white rounded-lg text-sm"
+          //   disabled={dayStatus !== "UPCOMING"}
+          // >
+          //   {dayStatus !== "UPCOMING"
+          //     ? "Selection Locked"
+          //     : adding
+          //     ? "Close Selection"
+          //     : "Add BullPairs"}
+          // </button>
         )}
       </div>
 
@@ -510,30 +678,36 @@ function DayBullPairsSection({
                   {item.team.teamName}
                 </div>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {(item.team.bullPairs || []).map((bp) => (
-                    <label
-                      key={bp._id}
-                      className="flex items-center gap-2 px-2 py-1 border border-stone-200 rounded-lg text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        value={bp._id}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          const key = `${item.registrationId}:${item.team._id}:${bp._id}`;
-                          setSelected((prev) =>
-                            checked
-                              ? [...prev, key]
-                              : prev.filter((k) => k !== key)
-                          );
-                        }}
-                      />
-                      <span>
-                        {bp.bullA?.name} & {bp.bullB?.name} •{" "}
-                        {bp.category?.type}/{bp.category?.value}
-                      </span>
-                    </label>
-                  ))}
+                  {(item.team.bullPairs || [])
+                    .filter((bp) =>
+                      (item.selectedBullPairs || []).includes(
+                        bp._id?.toString()
+                      )
+                    )
+                    .map((bp) => (
+                      <label
+                        key={bp._id}
+                        className="flex items-center gap-2 px-2 py-1 border border-stone-200 rounded-lg text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          value={bp._id}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            const key = `${item.registrationId}:${item.team._id}:${bp._id}`;
+                            setSelected((prev) =>
+                              checked
+                                ? [...prev, key]
+                                : prev.filter((k) => k !== key)
+                            );
+                          }}
+                        />
+                        <span>
+                          {bp.bullA?.name} & {bp.bullB?.name} •{" "}
+                          {bp.category?.type}/{bp.category?.value}
+                        </span>
+                      </label>
+                    ))}
                 </div>
               </div>
             ))}
