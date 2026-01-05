@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import { Phone, Lock, ArrowRight, Zap } from "lucide-react";
 import toast from "react-hot-toast";
 import { validateLogin } from "../../utils/validation";
-import { loginAPI } from "../../services/auth";
+import { loginAPI, forgotPasswordAPI } from "../../services/auth";
 
 export default function Login() {
   //  LOCAL FORM STATE
@@ -12,6 +12,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [showForgot, setShowForgot] = useState(false);
+  const [forgotMobile, setForgotMobile] = useState("");
 
   const navigate = useNavigate();
 
@@ -70,35 +72,10 @@ export default function Login() {
           transition={{ delay: 0.2 }}
           className="text-center mb-6 sm:mb-8"
         >
-          {/*
-          <motion.div
-            animate={{
-              scale: [1, 1.1, 1],
-              rotate: [0, 5, -5, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
-            className="inline-block mb-6"
-          >
-            <div className="relative">
-              <Zap className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]" />
-              <motion.div
-                animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="absolute inset-0 bg-amber-400 rounded-full blur-lg sm:blur-xl
-"
-              />
-            </div>
-          </motion.div>
-          */}
-
           <motion.h2
             animate={{ rotate: [0, 2, -2, 0] }}
             transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2 }}
-            className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-100 mb-2"
+            className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-100 my-3"
           >
             MANAEDLAPANDALU
           </motion.h2>
@@ -199,13 +176,64 @@ export default function Login() {
 
             <button
               type="button"
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/register")}
               className="w-full text-sm text-amber-300/70 hover:text-amber-200"
             >
-              Back to Home
+              Don&apos;t have an account?
             </button>
           </motion.div>
         </form>
+        <div className="mt-4 space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowForgot((v) => !v)}
+            className="w-full text-sm text-amber-300/80 hover:text-amber-200"
+          >
+            {showForgot ? "Close Forgot Password" : "Forgot Password?"}
+          </button>
+          {showForgot && (
+            <div className="mt-2 space-y-2">
+              <label className="text-sm text-amber-200">
+                Enter Mobile Number
+              </label>
+              <motion.input
+                whileFocus={{ scale: 1.02 }}
+                type="tel"
+                maxLength={10}
+                value={forgotMobile}
+                onChange={(e) => setForgotMobile(e.target.value)}
+                className="w-full py-3 rounded-xl bg-amber-900/50 border border-amber-700/50 text-amber-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 px-3"
+              />
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                type="button"
+                onClick={async () => {
+                  try {
+                    if (!/^[6-9]\d{9}$/.test(forgotMobile)) {
+                      toast.error("Enter a valid 10-digit mobile number");
+                      return;
+                    }
+                    await forgotPasswordAPI(forgotMobile);
+                    toast.success(
+                      "Reset code sent to your mobile number. Please check your SMS and follow the instructions."
+                    );
+                    setShowForgot(false); // Close the forgot password form
+                  } catch (err) {
+                    const message =
+                      err.response?.data?.message ||
+                      err.message ||
+                      "Failed to generate reset token";
+                    toast.error(message);
+                  }
+                }}
+                className="w-full bg-linear-to-r from-stone-700 to-stone-900 text-white py-3 rounded-xl border border-stone-600 transition"
+              >
+                Send Reset Request
+              </motion.button>
+            </div>
+          )}
+        </div>
       </motion.div>
     </div>
   );

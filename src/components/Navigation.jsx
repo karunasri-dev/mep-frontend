@@ -28,7 +28,7 @@ const Navigation = () => {
       id: "statistics",
       label: "Statistics",
       icon: BarChart3,
-      path: "/statistics",
+      path: "/stats",
     },
     {
       id: `${isLogin ? "profile" : "register"}`,

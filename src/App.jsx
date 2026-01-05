@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 
 import Login from "./Pages/auth/Login";
 import Register from "./Pages/auth/Register";
-import Choice from "./pages/auth/Choice";
+import ResetPassword from "./Pages/auth/ResetPassword";
 
 import HomePage from "./Pages/HomePage";
 import Header from "./components/Header";
@@ -24,6 +24,7 @@ import ProfilePage from "./Pages/ProfilePage";
 import EventPage from "./Pages/EventPage";
 import EventDetailsPage from "./Pages/EventDetailsPage";
 import EventTeamDetailsPage from "./Pages/EventTeamDetailsPage";
+import StatsPage from "./Pages/StatsPage";
 
 // admin pages
 import Dashboard from "./admin/pages/DashboardLayout";
@@ -65,7 +66,7 @@ function PublicLayout({ children }) {
 ------------------------- */
 function UserLayout({ children, mobileMenuOpen, setMobileMenuOpen }) {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#fbf6ee]">
       <Header />
       <Navigation
         mobileMenuOpen={mobileMenuOpen}
@@ -131,10 +132,9 @@ function AppContent() {
         <PublicLayout>
           <Routes>
             <Route path="/" element={<HomePage />} />
-
-            <Route path="/auth" element={<Choice />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/reset-password/:token" element={<ResetPassword />} />
             <Route
               path="/unauthorized"
               element={<div>Unauthorized Access</div>}
@@ -165,10 +165,7 @@ function AppContent() {
               path="/events/:eventId/teams/:teamId"
               element={<EventTeamDetailsPage loading={loading} />}
             />
-            <Route
-              path="/statistics"
-              element={<GenericPage title="Statistics" loading={loading} />}
-            />
+            <Route path="/stats" element={<StatsPage />} />
             <Route
               path="/teams/:id"
               element={<TeamDetailsPage loading={loading} />}
