@@ -94,8 +94,8 @@ export default function EventDetailsPage() {
         )}
         {/* Event Header */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-stone-200">
-          <div className="flex justify-between items-start">
-            <div>
+          <div className="flex justify-between items-start relative">
+            <div className="mt-6 sm:mt-0">
               <h1 className="text-3xl font-serif font-medium text-stone-800">
                 {event.title}
               </h1>
@@ -113,14 +113,16 @@ export default function EventDetailsPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MapPin size={18} />
-                  <span className="text-stone-600">{event.location?.name}</span>
+                  <MapPin size={20} />
+                  <span className="text-stone-600 mr-3">
+                    {event.location?.name}
+                  </span>
                   {event.location?.googleMapUrl && (
                     <a
                       href={event.location.googleMapUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-amber-700 hover:underline text-sm"
+                      className="text-amber-700 hover:underline text-sm whitespace-nowrap"
                     >
                       View on Google Maps
                     </a>
@@ -133,7 +135,7 @@ export default function EventDetailsPage() {
               </div>
             </div>
             <span
-              className={`px-3 py-1 rounded-full text-sm font-semibold border ${
+              className={`absolute top-[-7px] right-[-7px] sm:relative px-3 py-1 rounded-full text-sm font-semibold border ${
                 event.state === "ONGOING"
                   ? "bg-emerald-50 text-emerald-700 border-emerald-100 animate-pulse"
                   : "bg-stone-100 text-stone-700 border-stone-200"
@@ -753,13 +755,13 @@ function DayBullPairsSection({
                 <p className="font-medium text-stone-800 group-hover:text-amber-700 transition-colors">
                   {entry.team?.teamName || "Team"}
                 </p>
+                <p className="text-xs text-stone-500">
+                  {entry.bullPair?.category?.value}
+                </p>
                 <p className="text-sm text-stone-600">
                   {entry.bullPair?.name || "Bull Pair"}
                 </p>
-                <p className="text-xs text-stone-500">
-                  {entry.bullPair?.category?.type} •{" "}
-                  {entry.bullPair?.category?.value}
-                </p>
+
                 {entry.isWinner && (
                   <p className="mt-1 text-xs font-semibold text-emerald-700">
                     Winner of the Day
@@ -767,7 +769,7 @@ function DayBullPairsSection({
                 )}
               </div>
               <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {entry.gameStatus === "COMPLETED" ? (
                     <span className="flex items-center gap-1 text-xs font-medium bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100">
                       <Activity size={12} /> Completed
@@ -783,12 +785,12 @@ function DayBullPairsSection({
                   )}
                 </div>
                 {entry.performance && entry.gameStatus !== "NEXT" && (
-                  <div className="text-xs text-stone-600">
-                    <span className="mr-3">
-                      Distance: {entry.performance.distanceMeters} m
+                  <div className="text-xs text-stone-600 flex md:flex-wrap flex-col">
+                    <span className="mr-2">
+                      Distance: {entry.performance.distanceMeters}m
                     </span>
-                    <span className="mr-3">
-                      Time: {entry.performance.timeSeconds} s
+                    <span className="mr-2">
+                      Time: {entry.performance.timeSeconds}s
                     </span>
                     <span>Rock: {entry.performance.rockWeightKg} kg</span>
                   </div>

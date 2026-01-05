@@ -71,7 +71,6 @@ const HomePage = ({ loading }) => {
     },
     {
       title: "Youtube Live",
-      value: 1,
       icon: YoutubeIcon,
       accentBorder: "border-amber-600",
       bgTint: "bg-amber-50",
