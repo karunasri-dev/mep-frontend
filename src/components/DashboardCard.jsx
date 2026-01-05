@@ -13,6 +13,7 @@ const DashboardCard = ({
   onClick,
   expandable = false,
   actions = [],
+  loading = false,
 }) => {
   const [open, setOpen] = useState(false);
 
@@ -42,7 +43,11 @@ const DashboardCard = ({
           <p className="text-sm text-stone-600">{title}</p>
           {value !== undefined && (
             <p className="text-3xl font-serif text-stone-900 mt-1">
-              {value ?? "—"}
+              {loading ? (
+                <div className="h-8 bg-stone-200 rounded animate-pulse w-16"></div>
+              ) : (
+                value ?? "—"
+              )}
             </p>
           )}
         </div>

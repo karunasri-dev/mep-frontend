@@ -5,6 +5,7 @@ import { Phone, Lock, ArrowRight, Zap } from "lucide-react";
 import toast from "react-hot-toast";
 import { validateLogin } from "../../utils/validation";
 import { loginAPI, forgotPasswordAPI } from "../../services/auth";
+import { useAuth } from "../../context/AuthContext";
 
 export default function Login() {
   //  LOCAL FORM STATE
@@ -16,6 +17,7 @@ export default function Login() {
   const [forgotMobile, setForgotMobile] = useState("");
 
   const navigate = useNavigate();
+  const { checkAuth } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,6 +35,9 @@ export default function Login() {
       if (!user) {
         throw new Error("Malformed login response");
       }
+
+      // Update auth context immediately after login
+      await checkAuth();
 
       toast.success("Login successful");
       navigate("/bulls");

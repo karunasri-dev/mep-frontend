@@ -6,6 +6,7 @@ export default function CardItem({
   icon: Icon,
   onClick,
   pulse,
+  loading = false,
 }) {
   return (
     <div
@@ -28,10 +29,19 @@ export default function CardItem({
 
       <div className="flex items-end justify-between mt-auto">
         <div>
-          <div className="text-4xl font-serif text-stone-800 font-medium mb-1">
-            {value}
-          </div>
-          <p className="text-stone-500 text-sm">{subtitle}</p>
+          {loading ? (
+            <div className="animate-pulse">
+              <div className="h-10 bg-stone-200 rounded w-16 mb-1"></div>
+              <div className="h-4 bg-stone-200 rounded w-24"></div>
+            </div>
+          ) : (
+            <>
+              <div className="text-4xl font-serif text-stone-800 font-medium mb-1">
+                {value}
+              </div>
+              <p className="text-stone-500 text-sm">{subtitle}</p>
+            </>
+          )}
         </div>
         <div className="bg-amber-50 p-3 rounded-lg text-amber-600">
           <Icon className="w-6 h-6" />
