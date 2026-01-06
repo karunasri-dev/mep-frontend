@@ -45,7 +45,10 @@ export default function ActiveTeams() {
         name: t.teamName,
         owner: t.createdBy?.name || "Unknown Owner",
         bullName,
-        location: t.location || "—",
+        location:
+          [t?.teamLocation?.city, t?.teamLocation?.state, t?.teamLocation?.country]
+            .filter(Boolean)
+            .join(", ") || "—",
         members,
         eventsParticipated: t.eventsParticipated || 0,
         wins: t.wins || 0,

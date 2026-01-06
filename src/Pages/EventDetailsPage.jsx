@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import {
   getEventDaysPublic,
   getEventDaysAdmin,
@@ -18,7 +18,7 @@ import {
   MapPin,
   Calendar,
   Activity,
-  ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
 
 export default function EventDetailsPage() {
@@ -87,6 +87,13 @@ export default function EventDetailsPage() {
   return (
     <div className="min-h-screen bg-[#fbf6ee] py-8">
       <div className="max-w-7xl mx-auto px-4 space-y-8">
+        <Link
+          to="/events"
+          className="inline-flex items-center gap-2 text-amber-700 hover:text-amber-900 font-medium transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to Events
+        </Link>
         {errorMsg && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3">
             {errorMsg}

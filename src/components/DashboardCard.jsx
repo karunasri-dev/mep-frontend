@@ -44,7 +44,7 @@ const DashboardCard = ({
           {value !== undefined && (
             <p className="text-3xl font-serif text-stone-900 mt-1">
               {loading ? (
-                <div className="h-8 bg-stone-200 rounded animate-pulse w-16"></div>
+                <span className="h-8 bg-stone-200 rounded animate-pulse w-16"></span>
               ) : (
                 value ?? "—"
               )}

@@ -78,6 +78,21 @@ const TeamsPage = ({ loading }) => {
                     </span>
                   </p>
 
+                  {team.teamLocation && (
+                    <p className="text-sm text-stone-600">
+                      Location:{" "}
+                      <span className="font-medium text-stone-800">
+                        {[
+                          team.teamLocation.city,
+                          team.teamLocation.state,
+                          team.teamLocation.country,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}
+                      </span>
+                    </p>
+                  )}
+
                   <p className="text-sm text-stone-600">
                     Total Bulls:{" "}
                     <span className="font-medium text-stone-800">

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion } from "motion/react";
 import { Phone, Lock, ArrowRight, Zap } from "lucide-react";
 import toast from "react-hot-toast";
@@ -88,6 +88,12 @@ export default function Login() {
             Login to continue your journey
           </p>
         </motion.div>
+        <button
+          type="button"
+          className="w-full text-left  text-amber-300/70 hover:text-amber-200 transition-colors mb-3"
+        >
+          <Link to="/"> Back to Home</Link>
+        </button>
 
         {/* FORM */}
         <form onSubmit={handleSubmit} className="space-y-5">

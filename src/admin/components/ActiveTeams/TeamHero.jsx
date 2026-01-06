@@ -23,7 +23,7 @@ export default function TeamHero({ team }) {
             )}
           </div>
 
-          <p className="text-amber-100 mb-4">{team.description}</p>
+          {/* <p className="text-amber-100 mb-4">{team.description}</p> */}
 
           <div className="flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-2">
@@ -33,10 +33,6 @@ export default function TeamHero({ team }) {
             <div className="flex items-center gap-2">
               <MapPin className="w-4 h-4" />
               <span>{team.location}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              <span>Est. {team.established}</span>
             </div>
           </div>
         </div>

@@ -10,18 +10,17 @@ const Header = () => {
         width="1440"
         height="400"
         loading="eager"
-        fetchpriority="high"
         className="absolute inset-0 w-full h-full object-cover"
       />
 
       {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-linear-to-r from-orange-100/60 to-orange-200/80"></div>
+      <div className="absolute inset-0 bg-linear-to-r from-orange-100/50 to-orange-300/80"></div>
 
       {/* Content */}
       <div className="relative container mx-auto px-4 py-6 z-10">
         <div className="flex items-center justify-center space-x-4 md:space-x-12 mt-10">
           <motion.div
-            className="w-10 h-10 md:w-16 md:h-16 bg-amber-800 rounded-full flex items-center justify-center shadow-lg"
+            className="w-11 h-11 sm:w-10 sm:h-10 md:w-10 bg-amber-800 rounded-full flex items-center justify-center shadow-lg"
             animate={{
               y: ["-10px", "10px", "-10px"],
             }}
@@ -35,16 +34,16 @@ const Header = () => {
               src="/assets/bull1.webp"
               alt="Header background"
               loading="eager"
-              className="w-14 h-14 rounded-full"
+              className="w-10 h-10 sm:w-14 sm:h-14 rounded-full"
             />
           </motion.div>
           <div className="text-center">
-            <h1 className="text-3xl md:text-7xl font-bold tracking-wide text-amber-700">
+            <h1 className="text-2xl sm:text-3xl md:text-7xl font-bold tracking-wide text-amber-700">
               Mana Edla Pandalu
             </h1>
           </div>
           <motion.div
-            className="w-10 h-10 md:w-16 md:h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-lg"
+            className="w-11 h-11 sm:w-10 sm:h-10 md:w-16 md:h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-lg"
             animate={{
               y: ["-10px", "10px", "-10px"],
             }}
@@ -58,7 +57,7 @@ const Header = () => {
               src="/assets/bull2.webp"
               alt="Header background"
               loading="eager"
-              className="w-14 h-14 rounded-full"
+              className="w-10 h-10 sm:w-14 sm:h-14 rounded-full"
             />
           </motion.div>
         </div>
@@ -70,12 +69,12 @@ const Header = () => {
 
           <div className="mt-6 flex justify-center gap-6 items-center">
             <div className="border-b-4 rounded-full border-amber-500 w-32"></div>
-            <div className="w-10 h-10 md:w-16 md:h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-lg">
+            <div className="w-11 h-11 sm:w-10 sm:h-10 md:w-16 md:h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-lg">
               <img
                 src="/assets/bull2center.webp"
                 alt="Header background"
                 loading="eager"
-                className="w-14 h-14 rounded-full"
+                className="w-10 h-10 sm:w-14 sm:h-14 rounded-full"
               />
             </div>
             <div className="border-b-4 rounded-full border-amber-500 w-32"></div>

@@ -16,6 +16,7 @@ const ProfilePage = () => {
     teamName: "",
     bullPairs: [],
     teamMembers: [],
+    teamLocation: { city: "", state: "", country: "" },
   });
   const [changePasswordData, setChangePasswordData] = useState({
     currentPassword: "",
@@ -53,6 +54,11 @@ const ProfilePage = () => {
                   phone: m.phone || "",
                 }))
               : [],
+            teamLocation: {
+              city: t?.teamLocation?.city || "",
+              state: t?.teamLocation?.state || "",
+              country: t?.teamLocation?.country || "",
+            },
           });
         } else {
           setTeam(null);
@@ -117,6 +123,11 @@ const ProfilePage = () => {
           info: m.info || "",
           phone: m.phone || "",
         })),
+        teamLocation: {
+          city: teamData?.teamLocation?.city || "",
+          state: teamData?.teamLocation?.state || "",
+          country: teamData?.teamLocation?.country || "",
+        },
       };
       const res = await updateTeamRoster(team._id, payload);
       const updated = res.data.data || res.data;
@@ -358,6 +369,21 @@ const ProfilePage = () => {
                       </div>
 
                       <div>
+                        <label className="block text-sm font-medium text-stone-700">
+                          Location
+                        </label>
+                        <p className="mt-1 text-sm text-stone-800">
+                          {[
+                            team.teamLocation?.city,
+                            team.teamLocation?.state,
+                            team.teamLocation?.country,
+                          ]
+                            .filter(Boolean)
+                            .join(", ") || "Not specified"}
+                        </p>
+                      </div>
+
+                      <div>
                         <label className="block text-sm font-medium text-stone-700 mb-2">
                           Bull Pairs
                         </label>
@@ -429,14 +455,68 @@ const ProfilePage = () => {
                         <input
                           type="text"
                           value={teamData.teamName}
-                          onChange={(e) =>
-                            setTeamData((prev) => ({
-                              ...prev,
-                              teamName: e.target.value,
-                            }))
-                          }
-                          className="mt-1 block w-full px-3 py-2 border border-stone-200 rounded-md shadow-sm focus:outline-none focus:ring-amber-500/20 focus:border-amber-500"
+                          disabled
+                          className="mt-1 block w-full px-3 py-2 border border-stone-200 rounded-md shadow-sm bg-stone-50 text-stone-500 cursor-not-allowed"
                         />
+                        <p className="text-xs text-stone-500 mt-1">
+                          Team name cannot be changed
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-stone-700 mb-2">
+                          Team Location
+                        </label>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          <input
+                            placeholder="City"
+                            value={teamData?.teamLocation?.city || ""}
+                            onChange={(e) =>
+                              setTeamData((prev) => ({
+                                ...prev,
+                                teamLocation: {
+                                  ...prev.teamLocation,
+                                  city: e.target.value
+                                    .toLowerCase()
+                                    .replace(/\b\w/g, (l) => l.toUpperCase()),
+                                },
+                              }))
+                            }
+                            className="border rounded-md px-3 py-2 text-sm"
+                          />
+                          <input
+                            placeholder="State"
+                            value={teamData?.teamLocation?.state || ""}
+                            onChange={(e) =>
+                              setTeamData((prev) => ({
+                                ...prev,
+                                teamLocation: {
+                                  ...prev.teamLocation,
+                                  state: e.target.value
+                                    .toLowerCase()
+                                    .replace(/\b\w/g, (l) => l.toUpperCase()),
+                                },
+                              }))
+                            }
+                            className="border rounded-md px-3 py-2 text-sm"
+                          />
+                          <input
+                            placeholder="Country"
+                            value={teamData?.teamLocation?.country || ""}
+                            onChange={(e) =>
+                              setTeamData((prev) => ({
+                                ...prev,
+                                teamLocation: {
+                                  ...prev.teamLocation,
+                                  country: e.target.value
+                                    .toLowerCase()
+                                    .replace(/\b\w/g, (l) => l.toUpperCase()),
+                                },
+                              }))
+                            }
+                            className="border rounded-md px-3 py-2 text-sm"
+                          />
+                        </div>
                       </div>
 
                       <div>
@@ -590,7 +670,11 @@ const ProfilePage = () => {
                                 placeholder="Member Name"
                                 value={m.name}
                                 onChange={(e) => {
-                                  const val = e.target.value;
+                                  let val = e.target.value;
+                                  val = val
+                                    .toLowerCase()
+                                    .replace(/\b\w/g, (l) => l.toUpperCase());
+
                                   setTeamData((prev) => {
                                     const next = { ...prev };
                                     next.teamMembers = [...prev.teamMembers];
@@ -719,6 +803,11 @@ const ProfilePage = () => {
                                       phone: m.phone || "",
                                     }))
                                   : [],
+                                teamLocation: {
+                                  city: team?.teamLocation?.city || "",
+                                  state: team?.teamLocation?.state || "",
+                                  country: team?.teamLocation?.country || "",
+                                },
                               });
                             }
                           }}
