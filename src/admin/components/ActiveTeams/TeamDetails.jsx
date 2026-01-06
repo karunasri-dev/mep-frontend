@@ -37,9 +37,10 @@ export default function TeamDetails() {
       Array.isArray(data.bullPairs) && data.bullPairs.length > 0
         ? data.bullPairs[0]
         : null;
-    const bullName =
-      firstPair?.bullA?.name || firstPair?.bullB?.name || "N/A";
-    const members = Array.isArray(data.teamMembers) ? data.teamMembers.length : 0;
+    const bullName = firstPair?.bullA?.name || firstPair?.bullB?.name || "N/A";
+    const members = Array.isArray(data.teamMembers)
+      ? data.teamMembers.length
+      : 0;
     const totalEvents = data.eventsParticipated || 0;
     const wins = data.wins || 0;
     const winRate =
@@ -50,8 +51,15 @@ export default function TeamDetails() {
       name: data.teamName,
       owner: data.createdBy?.name || "Unknown Owner",
       bullName,
-      location: data.location || "—",
-      established: data.createdAt ? new Date(data.createdAt).getFullYear() : "—",
+      location:
+        [
+          data?.teamLocation?.city,
+          data?.teamLocation?.state,
+          data?.teamLocation?.country,
+        ]
+          .filter(Boolean)
+          .join(", ") || "—",
+
       members,
       totalEvents,
       wins,
@@ -65,13 +73,12 @@ export default function TeamDetails() {
         currentRank: data.rank || "-",
       },
       recentEvents: Array.isArray(data.recentEvents) ? data.recentEvents : [],
-      teamMembers:
-        Array.isArray(data.teamMembers)
-          ? data.teamMembers.map((m) => ({
-              name: m.name || "Unknown",
-              role: m.role || "Member",
-            }))
-          : [],
+      teamMembers: Array.isArray(data.teamMembers)
+        ? data.teamMembers.map((m) => ({
+            name: m.name || "Unknown",
+            role: m.role || "Member",
+          }))
+        : [],
     };
   }, [data]);
 

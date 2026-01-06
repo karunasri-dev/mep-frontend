@@ -1,0 +1,150 @@
+import React, { useMemo } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { Users, Award, DollarSign } from "lucide-react";
+import StatCard from "../StatCard";
+import DetailsSection from "../DetailsSection";
+
+export default function TeamStatsTab({ stats = [] }) {
+  const highlights = useMemo(() => {
+    if (!stats.length) return null;
+
+    const sortedByWins = [...stats].sort((a, b) => b.totalWins - a.totalWins);
+    const sortedByPlays = [...stats].sort((a, b) => b.totalBullPairPlays - a.totalBullPairPlays);
+    const sortedByPrize = [...stats].sort((a, b) => b.totalPrizeWon - a.totalPrizeWon);
+
+    return {
+      mostWins: sortedByWins[0],
+      mostPlays: sortedByPlays[0],
+      highestPrize: sortedByPrize[0],
+    };
+  }, [stats]);
+
+  const chartData = useMemo(() => {
+    return [...stats]
+      .sort((a, b) => b.totalWins - a.totalWins)
+      .slice(0, 10)
+      .map((s) => ({
+        name: s.teamName,
+        wins: s.totalWins,
+        plays: s.totalBullPairPlays,
+      }));
+  }, [stats]);
+
+  if (!stats.length) {
+    return (
+      <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
+        <p className="text-gray-500">No data available yet.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      {/* Highlights */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {highlights?.mostWins && (
+          <StatCard
+            title="Most Team Wins"
+            value={highlights.mostWins.totalWins}
+            subValue={highlights.mostWins.teamName}
+            icon={Award}
+            color="amber"
+          />
+        )}
+        {highlights?.mostPlays && (
+          <StatCard
+            title="Most Active Team"
+            value={highlights.mostPlays.totalBullPairPlays}
+            subValue={`${highlights.mostPlays.teamName} (Plays)`}
+            icon={Users}
+            color="blue"
+          />
+        )}
+        {highlights?.highestPrize && (
+          <StatCard
+            title="Highest Earnings"
+            value={`₹${highlights.highestPrize.totalPrizeWon}`}
+            subValue={highlights.highestPrize.teamName}
+            icon={DollarSign}
+            color="emerald"
+          />
+        )}
+      </div>
+
+      {/* Primary Chart */}
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-6">
+          Top Teams by Wins
+        </h3>
+        <div className="h-[300px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 40, left: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+              <XAxis 
+                dataKey="name" 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#6b7280', fontSize: 12 }}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fill: '#6b7280', fontSize: 12 }}
+              />
+              <Tooltip 
+                cursor={{ fill: '#f9fafb' }}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+              />
+              <Bar 
+                dataKey="wins" 
+                fill="#f59e0b" 
+                radius={[4, 4, 0, 0]} 
+                name="Total Wins"
+                maxBarSize={50}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Details Table */}
+      <DetailsSection title="Detailed Team Statistics">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team Name</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Plays</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wins</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Prize</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Distance</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Best BullPair</th>
+            </tr>
+          </thead>
+          <tbody className="bg-white divide-y divide-gray-200">
+            {stats.map((stat, idx) => (
+              <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{stat.teamName}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.totalBullPairPlays}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">{stat.totalWins}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{stat.totalPrizeWon}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.avgDistance}m</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.bestBullPair}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </DetailsSection>
+    </div>
+  );
+}

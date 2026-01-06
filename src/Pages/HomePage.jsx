@@ -5,6 +5,7 @@ import DashboardCard from "../components/DashboardCard";
 import { useTeams } from "../context/TeamContext";
 import { useNavigate } from "react-router-dom";
 import { getAllEvents } from "../services/events/event.api";
+import { getDashboardCountsAPI } from "../services/dashboard/dashboard.api";
 import {
   UserIcon,
   History,
@@ -14,7 +15,7 @@ import {
   Trophy,
   Instagram,
 } from "lucide-react";
-import WhatsAppIcon from "../assets/whatsapp.svg?react";
+import { useState, useEffect } from "react";
 
 const YOUTUBE_LIVE_URL = "https://www.youtube.com/@pnr0463?si=_w2AdJJgZFGfh7aO";
 const INSTAGRAM_URL =
@@ -24,13 +25,40 @@ const WHATSAPP_URL = "https://wa.me/9154143819";
 const HomePage = ({ loading }) => {
   const navigate = useNavigate();
   const { teams } = useTeams();
-  const activeBullsCount =
-    teams.reduce((acc, team) => acc + team.bullPairs.length, 0) * 2;
+  const [dashboardCounts, setDashboardCounts] = useState({
+    activeTeams: 0,
+    activeBulls: 0,
+    totalEvents: 0,
+  });
+  const [countsLoading, setCountsLoading] = useState(true);
+
+  // Fetch dashboard counts on component mount
+  useEffect(() => {
+    const fetchDashboardCounts = async () => {
+      try {
+        const response = await getDashboardCountsAPI();
+        setDashboardCounts(response.data.data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard counts:", error);
+        // Fallback to local calculations if API fails
+        const activeBullsCount =
+          teams.reduce((acc, team) => acc + team.bullPairs.length, 0) * 2;
+        setDashboardCounts({
+          activeTeams: teams.length,
+          activeBulls: activeBullsCount,
+          totalEvents: 4, // fallback
+        });
+      } finally {
+        setCountsLoading(false);
+      }
+    };
+
+    fetchDashboardCounts();
+  }, [teams]);
 
   const events = getAllEvents();
 
   console.log("events", events.data);
-  const eventsCount = events?.data?.data?.length;
 
   if (loading) {
     return (
@@ -45,7 +73,7 @@ const HomePage = ({ loading }) => {
   const cards = [
     {
       title: "Active Owners",
-      value: teams?.length,
+      value: countsLoading ? "..." : dashboardCounts.activeTeams,
       icon: UserIcon,
       accentBorder: "border-emerald-600",
       bgTint: "bg-emerald-50",
@@ -54,15 +82,15 @@ const HomePage = ({ loading }) => {
     },
     {
       title: "Active Bulls",
-      value: activeBullsCount || 0,
+      value: countsLoading ? "..." : dashboardCounts.activeBulls,
       icon: Trophy,
       accentBorder: "border-red-600",
       bgTint: "bg-red-50",
       iconColor: "text-red-700",
     },
     {
-      title: "Upcoming Events",
-      value: eventsCount || 4, // replace with API later
+      title: "Total Events",
+      value: countsLoading ? "..." : dashboardCounts.totalEvents,
       icon: CalendarDays,
       accentBorder: "border-blue-600",
       bgTint: "bg-blue-50",
@@ -71,7 +99,6 @@ const HomePage = ({ loading }) => {
     },
     {
       title: "Youtube Live",
-      value: 1,
       icon: YoutubeIcon,
       accentBorder: "border-amber-600",
       bgTint: "bg-amber-50",
@@ -125,7 +152,11 @@ const HomePage = ({ loading }) => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {cards.map((card, idx) => (
-              <DashboardCard key={idx} {...card} />
+              <DashboardCard
+                key={idx}
+                {...card}
+                loading={card.value === "..."}
+              />
             ))}
           </div>
         </div>

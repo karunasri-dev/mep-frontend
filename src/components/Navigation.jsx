@@ -8,6 +8,7 @@ import {
   BarChart3,
   Menu,
   X,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
@@ -16,9 +17,9 @@ const Navigation = () => {
   // Navigation OWNS its state now (correct design)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const { isLogin } = useAuth() || {};
+  const { isLogin, user } = useAuth() || {};
 
-  const navItems = [
+  const baseNavItems = [
     { id: "dashboard", label: "Dashboard", icon: Home, path: "/" },
     { id: "bulls", label: "Bulls & Owners", icon: Users, path: "/bulls" },
     { id: "teams", label: "Teams", icon: UserSquare2, path: "/teams" },
@@ -28,7 +29,7 @@ const Navigation = () => {
       id: "statistics",
       label: "Statistics",
       icon: BarChart3,
-      path: "/statistics",
+      path: "/stats",
     },
     {
       id: `${isLogin ? "profile" : "register"}`,
@@ -36,6 +37,21 @@ const Navigation = () => {
       icon: UserSquare2,
       path: `${isLogin ? "/profile" : "/register"}`,
     },
+  ];
+
+  // Add admin navigation item if user is admin
+  const navItems = [
+    ...baseNavItems,
+    ...(isLogin && user?.role?.toLowerCase() === "admin"
+      ? [
+          {
+            id: "admin",
+            label: "Admin",
+            icon: Shield,
+            path: "/admin/home",
+          },
+        ]
+      : []),
   ];
 
   return (

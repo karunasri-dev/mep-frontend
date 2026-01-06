@@ -21,8 +21,17 @@ export default function UserEventCard({ event, onRegister, canRegister }) {
       </div>
 
       <p className="text-sm text-stone-600 mt-2">
-        {new Date(event.timings.from).toLocaleString()} –{" "}
-        {new Date(event.timings.to).toLocaleString()}
+        {new Date(event.timings.from).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })}
+        –{" "}
+        {new Date(event.timings.to).toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        })}
       </p>
 
       <div className="text-sm mt-1 text-stone-600">

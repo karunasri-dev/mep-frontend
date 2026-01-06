@@ -12,6 +12,9 @@ export default function EditTeam() {
     const loadTeam = async () => {
       try {
         const data = await getTeamById(teamId);
+        if (!data.teamLocation) {
+          data.teamLocation = { city: "", state: "", country: "" };
+        }
         setTeam(data);
       } catch {
         toast.error("Failed to load team");
@@ -28,6 +31,7 @@ export default function EditTeam() {
       await updateTeamRoster(teamId, {
         bullPairs: team.bullPairs,
         teamMembers: team.teamMembers,
+        teamLocation: team.teamLocation,
       });
       toast.success("Team updated successfully");
     } catch {
@@ -41,6 +45,7 @@ export default function EditTeam() {
     <div className="max-w-4xl mx-auto space-y-8">
       <h1 className="text-xl font-semibold">Edit Team: {team.teamName}</h1>
 
+      <LocationSection team={team} setTeam={setTeam} />
       <BullPairsSection team={team} setTeam={setTeam} />
       <TeamMembersSection team={team} setTeam={setTeam} />
 
@@ -135,6 +140,45 @@ function BullPairsSection({ team, setTeam }) {
       <button onClick={addPair} className="text-sm text-amber-600">
         + Add Bull Pair
       </button>
+    </section>
+  );
+}
+
+function LocationSection({ team, setTeam }) {
+  const updateLocation = (field, value) => {
+    // Title Case formatting
+    const formatted = value
+      .toLowerCase()
+      .replace(/\b\w/g, (l) => l.toUpperCase());
+    setTeam({
+      ...team,
+      teamLocation: { ...team.teamLocation, [field]: formatted },
+    });
+  };
+
+  return (
+    <section className="space-y-4">
+      <h2 className="font-medium">Team Location</h2>
+      <div className="grid grid-cols-3 gap-4">
+        <input
+          value={team.teamLocation?.city || ""}
+          onChange={(e) => updateLocation("city", e.target.value)}
+          placeholder="City"
+          className="border p-2 rounded w-full"
+        />
+        <input
+          value={team.teamLocation?.state || ""}
+          onChange={(e) => updateLocation("state", e.target.value)}
+          placeholder="State"
+          className="border p-2 rounded w-full"
+        />
+        <input
+          value={team.teamLocation?.country || ""}
+          onChange={(e) => updateLocation("country", e.target.value)}
+          placeholder="Country"
+          className="border p-2 rounded w-full"
+        />
+      </div>
     </section>
   );
 }

@@ -11,6 +11,7 @@ import {
   Star,
 } from "lucide-react";
 import { getTeamByIdApi } from "../services/teams/index";
+import { getTeamStatsAPI } from "../services/stats/stats.api.js";
 
 export default function TeamDetailsPage() {
   const { id } = useParams();
@@ -18,6 +19,32 @@ export default function TeamDetailsPage() {
   const [team, setTeam] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [expandedCategories, setExpandedCategories] = useState(new Set());
+
+  const toggleCategory = (categoryValue) => {
+    setExpandedCategories((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryValue)) {
+        newSet.delete(categoryValue);
+      } else {
+        newSet.add(categoryValue);
+      }
+      return newSet;
+    });
+  };
+
+  const getCategorizedBulls = () => {
+    if (!team?.bullPairs) return {};
+
+    return team.bullPairs.reduce((acc, pair) => {
+      const categoryValue = pair?.category?.value || "Uncategorized";
+      if (!acc[categoryValue]) {
+        acc[categoryValue] = [];
+      }
+      acc[categoryValue].push(pair);
+      return acc;
+    }, {});
+  };
 
   useEffect(() => {
     if (id) {
@@ -28,9 +55,19 @@ export default function TeamDetailsPage() {
   const fetchTeamDetails = async () => {
     try {
       setLoading(true);
-      const res = await getTeamByIdApi(id);
-      const teamData = res.data.data;
+      const [teamRes, statsRes] = await Promise.all([
+        getTeamByIdApi(id),
+        getTeamStatsAPI(),
+      ]);
 
+      const teamData = teamRes.data.data;
+      const allTeamStats = statsRes.data.data;
+
+      // Find stats for this team
+      const teamStats = allTeamStats.find((stat) => stat.teamId === id) || {};
+      if (teamStats) {
+        console.log("Team Stats:", teamStats);
+      }
       // Adapt Backend Data
       const owner =
         teamData.teamMembers?.find((m) => m.role === "OWNER")?.name ||
@@ -40,15 +77,23 @@ export default function TeamDetailsPage() {
         id: teamData._id,
         name: teamData.teamName,
         owner: owner,
-        location: "Mangalore, Karnataka", // Placeholder
+        location:
+          [
+            teamData?.teamLocation?.city,
+            teamData?.teamLocation?.state,
+            teamData?.teamLocation?.country,
+          ]
+            .filter(Boolean)
+            .join(", ") || "—",
         established: new Date(teamData.createdAt).getFullYear().toString(),
         description: teamData.info || "No description available for this team.",
         bullPairs: teamData.bullPairs || [],
         members: teamData.teamMembers || [],
         stats: {
-          wins: 0,
-          events: 0,
+          wins: teamStats.totalWins || 0,
+          events: teamStats.totalBullPairPlays || 0,
           rank: "N/A",
+          totalPrize: teamStats.totalPrizeWon || 0,
         },
       };
 
@@ -103,7 +148,7 @@ export default function TeamDetailsPage() {
         {/* Hero Section */}
         <div className="bg-white border border-stone-200 rounded-2xl p-8 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-amber-50 rounded-full -translate-y-1/2 translate-x-1/2 opacity-50" />
-          
+
           <div className="relative z-10 flex flex-col md:flex-row gap-8 items-start md:items-center">
             {/* Team Avatar/Image Placeholder */}
             <div className="w-32 h-32 bg-stone-100 rounded-2xl flex items-center justify-center text-6xl shadow-inner border border-stone-200">
@@ -130,10 +175,10 @@ export default function TeamDetailsPage() {
                   </div>
                 </div>
               </div>
-              
-              <p className="text-stone-600 max-w-2xl leading-relaxed">
+
+              {/* <p className="text-stone-600 max-w-2xl leading-relaxed">
                 {team.description}
-              </p>
+              </p> */}
             </div>
 
             {/* Quick Stats (Hero) */}
@@ -160,43 +205,87 @@ export default function TeamDetailsPage() {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
           {/* Left Column: Bulls & Members */}
           <div className="lg:col-span-2 space-y-8">
-            
             {/* Bulls Section */}
             <section>
               <h2 className="text-2xl font-serif text-stone-800 mb-6 flex items-center gap-3">
                 <span className="w-8 h-1 bg-amber-400 rounded-full"></span>
                 Registered Bulls
               </h2>
-              
+
               {team.bullPairs.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {team.bullPairs.map((pair, idx) => (
-                    <div
-                      key={idx}
-                      className="bg-white border border-stone-200 rounded-xl p-6 hover:border-amber-300 transition-colors shadow-sm"
-                    >
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-xl">
-                          🐂
-                        </div>
-                        <div>
-                          <h3 className="font-serif text-lg text-stone-800">
-                            {pair?.bullA?.name || "—"} & {pair?.bullB?.name || "—"}
-                          </h3>
-                          <p className="text-sm text-stone-500">
-                            Category: {pair?.category?.type || "—"} / {pair?.category?.value || "—"}
-                          </p>
-                        </div>
+                <div className="space-y-4">
+                  {Object.entries(getCategorizedBulls()).map(
+                    ([categoryValue, bulls]) => (
+                      <div
+                        key={categoryValue}
+                        className="bg-white border border-stone-200 rounded-xl shadow-sm overflow-hidden"
+                      >
+                        <button
+                          onClick={() => toggleCategory(categoryValue)}
+                          className="w-full p-6 text-left hover:bg-stone-50 transition-colors flex items-center justify-between"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-xl">
+                              🐂
+                            </div>
+                            <div>
+                              <h3 className="font-serif text-lg text-stone-800">
+                                Category {categoryValue}
+                              </h3>
+                              <p className="text-sm text-stone-500">
+                                {bulls.length} bull pair
+                                {bulls.length !== 1 ? "s" : ""}
+                              </p>
+                            </div>
+                          </div>
+                          <div
+                            className={`transform transition-transform ${
+                              expandedCategories.has(categoryValue)
+                                ? "rotate-180"
+                                : ""
+                            }`}
+                          >
+                            <svg
+                              className="w-5 h-5 text-stone-400"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M19 9l-7 7-7-7"
+                              />
+                            </svg>
+                          </div>
+                        </button>
+
+                        {expandedCategories.has(categoryValue) && (
+                          <div className="px-6 pb-6 border-t border-stone-100">
+                            <div className="pt-4 space-y-3">
+                              {bulls.map((pair, idx) => (
+                                <div
+                                  key={idx}
+                                  className="flex items-center gap-3 p-3 bg-stone-50 rounded-lg"
+                                >
+                                  <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center text-sm">
+                                    🐂
+                                  </div>
+                                  <span className="text-stone-700 font-medium">
+                                    {pair?.bullA?.name || "—"} &{" "}
+                                    {pair?.bullB?.name || "—"}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      
-                      <div className="text-xs text-stone-500 bg-stone-50 p-3 rounded-lg">
-                        Bull pair details shown from team record
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  )}
                 </div>
               ) : (
                 <div className="bg-white border border-stone-200 rounded-xl p-8 text-center text-stone-500 italic">
@@ -211,7 +300,7 @@ export default function TeamDetailsPage() {
                 <span className="w-8 h-1 bg-amber-400 rounded-full"></span>
                 Team Members
               </h2>
-              
+
               <div className="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left">
@@ -230,7 +319,10 @@ export default function TeamDetailsPage() {
                     </thead>
                     <tbody className="divide-y divide-stone-100">
                       {team.members.map((member, idx) => (
-                        <tr key={idx} className="hover:bg-stone-50 transition-colors">
+                        <tr
+                          key={idx}
+                          className="hover:bg-stone-50 transition-colors"
+                        >
                           <td className="px-6 py-4 text-stone-800 font-medium">
                             {member.name}
                           </td>
@@ -265,28 +357,34 @@ export default function TeamDetailsPage() {
                 <Trophy className="w-5 h-5 text-amber-600" />
                 Achievements
               </h3>
-              
+
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100">
                   <div className="flex items-center gap-3">
                     <Medal className="w-5 h-5 text-amber-600" />
                     <span className="text-stone-700 font-medium">Rank</span>
                   </div>
-                  <span className="text-amber-800 font-bold">#{team.stats.rank}</span>
+                  <span className="text-amber-800 font-bold">
+                    #{team.stats.rank}
+                  </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between p-3 bg-stone-50 rounded-lg border border-stone-100">
                   <div className="flex items-center gap-3">
                     <Award className="w-5 h-5 text-stone-500" />
-                    <span className="text-stone-700 font-medium">Total Prize</span>
+                    <span className="text-stone-700 font-medium">
+                      Total Prize
+                    </span>
                   </div>
-                  <span className="text-stone-800 font-bold">₹0</span>
+                  <span className="text-stone-800 font-bold">
+                    ₹{team.stats.totalPrize}
+                  </span>
                 </div>
               </div>
             </div>
 
             {/* Recent Activity (Placeholder) */}
-            <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm">
+            {/* <div className="bg-white border border-stone-200 rounded-xl p-6 shadow-sm">
               <h3 className="font-serif text-xl text-stone-800 mb-4 flex items-center gap-2">
                 <Star className="w-5 h-5 text-amber-600" />
                 Recent Activity
@@ -294,9 +392,8 @@ export default function TeamDetailsPage() {
               <p className="text-stone-500 text-sm italic">
                 No recent activity recorded.
               </p>
-            </div>
+            </div> */}
           </div>
-
         </div>
       </div>
     </div>

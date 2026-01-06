@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -115,13 +115,16 @@ const refreshToken = async () => {
 };
 
 export const forgotPasswordAPI = (mobileNumber) => {
-  return api.post(`/api/auth/forgot-password`, { mobileNumber });
+  return api.post(`/api/auth/forgotPassword`, { mobileNumber });
 };
 
 export const changePasswordAPI = (data) => {
   return api.patch(`/api/auth/changePassword`, data);
 };
 
+export const resetPasswordAPI = (token, password) => {
+  return api.patch(`/api/auth/resetPassword/${token}`, { password });
+};
 // Forced logout (cross-tab safe)
 const forceLogout = () => {
   localStorage.setItem("force-logout", Date.now().toString());

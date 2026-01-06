@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
 import {
   getEventDaysPublic,
   getEventDaysAdmin,
@@ -18,12 +18,13 @@ import {
   MapPin,
   Calendar,
   Activity,
-  ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
 
 export default function EventDetailsPage() {
-  const { id } = useParams();
-  console.log("Event Id", id);
+  const routeParams = useParams();
+  const eventId = routeParams.id || routeParams.eventId;
+  console.log("Event Id", eventId);
   const [event, setEvent] = useState(null);
   const [days, setDays] = useState([]);
   const [selectedDayId, setSelectedDayId] = useState(null);
@@ -32,23 +33,25 @@ export default function EventDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("days"); // 'days'
   const [errorMsg, setErrorMsg] = useState("");
-  const navigate = useNavigate();
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     loadData();
-  }, [id, isAdminRoute]);
+  }, [eventId, isAdminRoute]);
 
   const loadData = async () => {
     setLoading(true);
 
     try {
-      const eventPromise = getEventById(id);
+      const eventPromise = getEventById(eventId);
       const daysPromise = isAdminRoute
-        ? getEventDaysAdmin(id)
-        : getEventDaysPublic(id);
-      const [eventRes, daysRes] = await Promise.all([eventPromise, daysPromise]);
+        ? getEventDaysAdmin(eventId)
+        : getEventDaysPublic(eventId);
+      const [eventRes, daysRes] = await Promise.all([
+        eventPromise,
+        daysPromise,
+      ]);
       setEvent(eventRes.data.data);
       const d = daysRes.data.data || [];
       setDays(d);
@@ -84,6 +87,13 @@ export default function EventDetailsPage() {
   return (
     <div className="min-h-screen bg-[#fbf6ee] py-8">
       <div className="max-w-7xl mx-auto px-4 space-y-8">
+        <Link
+          to="/events"
+          className="inline-flex items-center gap-2 text-amber-700 hover:text-amber-900 font-medium transition-colors group"
+        >
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          Back to Events
+        </Link>
         {errorMsg && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3">
             {errorMsg}
@@ -91,8 +101,8 @@ export default function EventDetailsPage() {
         )}
         {/* Event Header */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-stone-200">
-          <div className="flex justify-between items-start">
-            <div>
+          <div className="flex justify-between items-start relative">
+            <div className="mt-6 sm:mt-0">
               <h1 className="text-3xl font-serif font-medium text-stone-800">
                 {event.title}
               </h1>
@@ -110,14 +120,16 @@ export default function EventDetailsPage() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <MapPin size={18} />
-                  <span className="text-stone-600">{event.location?.name}</span>
+                  <MapPin size={20} />
+                  <span className="text-stone-600 mr-3">
+                    {event.location?.name}
+                  </span>
                   {event.location?.googleMapUrl && (
                     <a
                       href={event.location.googleMapUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-amber-700 hover:underline text-sm"
+                      className="text-amber-700 hover:underline text-sm whitespace-nowrap"
                     >
                       View on Google Maps
                     </a>
@@ -130,7 +142,7 @@ export default function EventDetailsPage() {
               </div>
             </div>
             <span
-              className={`px-3 py-1 rounded-full text-sm font-semibold border ${
+              className={`absolute top-[-7px] right-[-7px] sm:relative px-3 py-1 rounded-full text-sm font-semibold border ${
                 event.state === "ONGOING"
                   ? "bg-emerald-50 text-emerald-700 border-emerald-100 animate-pulse"
                   : "bg-stone-100 text-stone-700 border-stone-200"
@@ -169,8 +181,19 @@ export default function EventDetailsPage() {
                 </span>
               </div>
               {days.length === 0 ? (
-                <div className="p-8 text-center text-stone-500">
-                  No event days yet.
+                <div className="p-4">
+                  <div className="p-8 text-center text-stone-500">
+                    No event days yet.
+                  </div>
+                  {isAdminRoute && (
+                    <CreateDayForm
+                      eventId={eventId}
+                      onCreated={(day) => {
+                        setDays((prev) => [...prev, day]);
+                        setSelectedDayId(day._id);
+                      }}
+                    />
+                  )}
                 </div>
               ) : (
                 <div className="p-4">
@@ -197,7 +220,7 @@ export default function EventDetailsPage() {
                   />
                   {isAdminRoute && (
                     <CreateDayForm
-                      eventId={id}
+                      eventId={eventId}
                       onCreated={(day) => {
                         setDays((prev) => [...prev, day]);
                         setSelectedDayId(day._id);
@@ -206,7 +229,7 @@ export default function EventDetailsPage() {
                   )}
                   {selectedDayId && (
                     <DayBullPairsSection
-                      eventId={id}
+                      eventId={eventId}
                       dayId={selectedDayId}
                       dayStatus={selectedDay?.status}
                       entries={dayEntries}
@@ -224,12 +247,14 @@ export default function EventDetailsPage() {
   );
 }
 
-function AdminControls({ entry, onUpdated }) {
+function AdminControls({ entry, onUpdated, dayStatus }) {
   const [perf, setPerf] = useState({
     rockWeightKg: entry.performance?.rockWeightKg || "",
     distanceMeters: entry.performance?.distanceMeters || "",
     timeSeconds: entry.performance?.timeSeconds || "",
   });
+  const [timeUnit, setTimeUnit] = useState("minutes"); // minutes or seconds
+  const [editing, setEditing] = useState(false);
 
   const startPlaying = async () => {
     try {
@@ -246,8 +271,23 @@ function AdminControls({ entry, onUpdated }) {
   };
   const complete = async () => {
     try {
-      const res = await updateDayBullPairStatus(entry._id, "COMPLETED");
-      onUpdated(res.data.data);
+      const hasAny =
+        perf.rockWeightKg !== "" ||
+        perf.distanceMeters !== "" ||
+        perf.timeSeconds !== "";
+      if (hasAny) {
+        const seconds =
+          timeUnit === "minutes"
+            ? Number(perf.timeSeconds) * 60
+            : Number(perf.timeSeconds);
+        await updateDayBullPairPerformance(entry._id, {
+          rockWeightKg: Number(perf.rockWeightKg),
+          distanceMeters: Number(perf.distanceMeters),
+          timeSeconds: seconds,
+        });
+      }
+      const resStatus = await updateDayBullPairStatus(entry._id, "COMPLETED");
+      onUpdated(resStatus.data.data);
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
@@ -258,10 +298,14 @@ function AdminControls({ entry, onUpdated }) {
   };
   const savePerformance = async () => {
     try {
+      const seconds =
+        timeUnit === "minutes"
+          ? Number(perf.timeSeconds) * 60
+          : Number(perf.timeSeconds);
       const res = await updateDayBullPairPerformance(entry._id, {
         rockWeightKg: Number(perf.rockWeightKg),
         distanceMeters: Number(perf.distanceMeters),
-        timeSeconds: Number(perf.timeSeconds),
+        timeSeconds: seconds,
       });
       onUpdated(res.data.data);
     } catch (err) {
@@ -310,12 +354,23 @@ function AdminControls({ entry, onUpdated }) {
               type="number"
               min="0"
               className="p-2 border border-stone-200 rounded-lg text-xs"
-              placeholder="Time s"
+              placeholder={timeUnit === "minutes" ? "Time min" : "Time s"}
               value={perf.timeSeconds}
               onChange={(e) =>
                 setPerf({ ...perf, timeSeconds: e.target.value })
               }
             />
+          </div>
+          <div className="text-xs text-stone-600">
+            <label className="mr-2">Time unit:</label>
+            <select
+              value={timeUnit}
+              onChange={(e) => setTimeUnit(e.target.value)}
+              className="border border-stone-200 rounded px-2 py-1"
+            >
+              <option value="minutes">Minutes</option>
+              <option value="seconds">Seconds</option>
+            </select>
           </div>
           <div className="flex gap-2">
             <button
@@ -338,6 +393,117 @@ function AdminControls({ entry, onUpdated }) {
           Played at {new Date(entry.playedAt).toLocaleString()}
         </div>
       )}
+      {entry.gameStatus === "COMPLETED" &&
+        !entry.isWinner &&
+        dayStatus !== "COMPLETED" && (
+          <>
+            {!editing ? (
+              <button
+                onClick={() => {
+                  setEditing(true);
+                  setPerf({
+                    rockWeightKg: entry.performance?.rockWeightKg ?? "",
+                    distanceMeters: entry.performance?.distanceMeters ?? "",
+                    timeSeconds:
+                      timeUnit === "minutes"
+                        ? (entry.performance?.timeSeconds ?? 0) / 60
+                        : entry.performance?.timeSeconds ?? "",
+                  });
+                }}
+                className="px-3 py-1 bg-stone-800 text-white rounded-lg text-xs hover:bg-stone-900"
+              >
+                Edit Score
+              </button>
+            ) : (
+              <div className="flex flex-col gap-2 w-full md:w-80">
+                <div className="grid grid-cols-3 gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    className="p-2 border border-stone-200 rounded-lg text-xs"
+                    placeholder="Rock kg"
+                    value={perf.rockWeightKg}
+                    onChange={(e) =>
+                      setPerf({ ...perf, rockWeightKg: e.target.value })
+                    }
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    className="p-2 border border-stone-200 rounded-lg text-xs"
+                    placeholder="Distance m"
+                    value={perf.distanceMeters}
+                    onChange={(e) =>
+                      setPerf({ ...perf, distanceMeters: e.target.value })
+                    }
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    className="p-2 border border-stone-200 rounded-lg text-xs"
+                    placeholder={timeUnit === "minutes" ? "Time min" : "Time s"}
+                    value={perf.timeSeconds}
+                    onChange={(e) =>
+                      setPerf({ ...perf, timeSeconds: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="text-xs text-stone-600">
+                  <label className="mr-2">Time unit:</label>
+                  <select
+                    value={timeUnit}
+                    onChange={(e) => setTimeUnit(e.target.value)}
+                    className="border border-stone-200 rounded px-2 py-1"
+                  >
+                    <option value="minutes">Minutes</option>
+                    <option value="seconds">Seconds</option>
+                  </select>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={async () => {
+                      const confirmed = window.confirm("Save edited score?");
+                      if (!confirmed) return;
+                      try {
+                        const seconds =
+                          timeUnit === "minutes"
+                            ? Number(perf.timeSeconds) * 60
+                            : Number(perf.timeSeconds);
+                        const res = await updateDayBullPairPerformance(
+                          entry._id,
+                          {
+                            rockWeightKg: Number(perf.rockWeightKg),
+                            distanceMeters: Number(perf.distanceMeters),
+                            timeSeconds: seconds,
+                          }
+                        );
+                        onUpdated(res.data.data);
+                        setEditing(false);
+                      } catch (err) {
+                        const msg =
+                          err?.response?.data?.message ||
+                          err?.message ||
+                          "Failed to save changes";
+                        import("react-hot-toast").then(({ toast }) =>
+                          toast.error(msg)
+                        );
+                      }
+                    }}
+                    className="px-3 py-1 bg-stone-800 text-white rounded-lg text-xs hover:bg-stone-900"
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="px-3 py-1 bg-stone-100 text-stone-700 rounded-lg text-xs hover:bg-stone-200"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
       {entry.gameStatus === "COMPLETED" && (
         <button
           onClick={async () => {
@@ -487,14 +653,25 @@ function DayBullPairsSection({
           <button
             onClick={() => setAdding((v) => !v)}
             className="px-3 py-2 bg-stone-800 text-white rounded-lg text-sm"
-            disabled={dayStatus !== "UPCOMING"}
+            disabled={dayStatus === "COMPLETED"}
           >
-            {dayStatus !== "UPCOMING"
-              ? "Selection Locked"
+            {dayStatus === "COMPLETED"
+              ? "Day Completed"
               : adding
               ? "Close Selection"
               : "Add BullPairs"}
           </button>
+          // <button
+          //   onClick={() => setAdding((v) => !v)}
+          //   className="px-3 py-2 bg-stone-800 text-white rounded-lg text-sm"
+          //   disabled={dayStatus !== "UPCOMING"}
+          // >
+          //   {dayStatus !== "UPCOMING"
+          //     ? "Selection Locked"
+          //     : adding
+          //     ? "Close Selection"
+          //     : "Add BullPairs"}
+          // </button>
         )}
       </div>
 
@@ -510,30 +687,36 @@ function DayBullPairsSection({
                   {item.team.teamName}
                 </div>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  {(item.team.bullPairs || []).map((bp) => (
-                    <label
-                      key={bp._id}
-                      className="flex items-center gap-2 px-2 py-1 border border-stone-200 rounded-lg text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        value={bp._id}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          const key = `${item.registrationId}:${item.team._id}:${bp._id}`;
-                          setSelected((prev) =>
-                            checked
-                              ? [...prev, key]
-                              : prev.filter((k) => k !== key)
-                          );
-                        }}
-                      />
-                      <span>
-                        {bp.bullA?.name} & {bp.bullB?.name} •{" "}
-                        {bp.category?.type}/{bp.category?.value}
-                      </span>
-                    </label>
-                  ))}
+                  {(item.team.bullPairs || [])
+                    .filter((bp) =>
+                      (item.selectedBullPairs || []).includes(
+                        bp._id?.toString()
+                      )
+                    )
+                    .map((bp) => (
+                      <label
+                        key={bp._id}
+                        className="flex items-center gap-2 px-2 py-1 border border-stone-200 rounded-lg text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          value={bp._id}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            const key = `${item.registrationId}:${item.team._id}:${bp._id}`;
+                            setSelected((prev) =>
+                              checked
+                                ? [...prev, key]
+                                : prev.filter((k) => k !== key)
+                            );
+                          }}
+                        />
+                        <span>
+                          {bp.bullA?.name} & {bp.bullB?.name} •{" "}
+                          {bp.category?.type}/{bp.category?.value}
+                        </span>
+                      </label>
+                    ))}
                 </div>
               </div>
             ))}
@@ -579,13 +762,13 @@ function DayBullPairsSection({
                 <p className="font-medium text-stone-800 group-hover:text-amber-700 transition-colors">
                   {entry.team?.teamName || "Team"}
                 </p>
+                <p className="text-xs text-stone-500">
+                  {entry.bullPair?.category?.value}
+                </p>
                 <p className="text-sm text-stone-600">
                   {entry.bullPair?.name || "Bull Pair"}
                 </p>
-                <p className="text-xs text-stone-500">
-                  {entry.bullPair?.category?.type} •{" "}
-                  {entry.bullPair?.category?.value}
-                </p>
+
                 {entry.isWinner && (
                   <p className="mt-1 text-xs font-semibold text-emerald-700">
                     Winner of the Day
@@ -593,7 +776,7 @@ function DayBullPairsSection({
                 )}
               </div>
               <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {entry.gameStatus === "COMPLETED" ? (
                     <span className="flex items-center gap-1 text-xs font-medium bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100">
                       <Activity size={12} /> Completed
@@ -609,12 +792,12 @@ function DayBullPairsSection({
                   )}
                 </div>
                 {entry.performance && entry.gameStatus !== "NEXT" && (
-                  <div className="text-xs text-stone-600">
-                    <span className="mr-3">
-                      Distance: {entry.performance.distanceMeters} m
+                  <div className="text-xs text-stone-600 flex md:flex-wrap flex-col">
+                    <span className="mr-2">
+                      Distance: {entry.performance.distanceMeters}m
                     </span>
-                    <span className="mr-3">
-                      Time: {entry.performance.timeSeconds} s
+                    <span className="mr-2">
+                      Time: {entry.performance.timeSeconds}s
                     </span>
                     <span>Rock: {entry.performance.rockWeightKg} kg</span>
                   </div>

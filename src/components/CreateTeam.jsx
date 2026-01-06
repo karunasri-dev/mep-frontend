@@ -22,6 +22,9 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
   const [form, setForm] = useState({
     teamName: "",
     ownerName: "",
+    city: "",
+    state: "",
+    country: "",
     bullPairs: [{ bullA: "", bullB: "", categoryKey: "senior" }],
     teamMembers: [{ name: "", role: "DRIVER", info: "" }], // additional members (non-owner)
   });
@@ -34,14 +37,33 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((p) => ({ ...p, [name]: value }));
+    let formattedValue = value;
+
+    if (name === "teamName") {
+      formattedValue = value.toUpperCase();
+    } else if (
+      ["city", "state", "country", "ownerName"].includes(name)
+    ) {
+      // Capitalize first letter of each word
+      formattedValue = value
+        .toLowerCase()
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+    }
+
+    setForm((p) => ({ ...p, [name]: formattedValue }));
   };
 
   /* ---------------- BULL HANDLERS ---------------- */
 
   const handleBullPairChange = (i, field, value) => {
     const bullPairs = [...form.bullPairs];
-    bullPairs[i][field] = value;
+    let formattedValue = value;
+    if (field === "bullA" || field === "bullB") {
+      formattedValue = value
+        .toLowerCase()
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+    }
+    bullPairs[i][field] = formattedValue;
     setForm((p) => ({ ...p, bullPairs }));
   };
 
@@ -72,7 +94,13 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
 
   const updateMember = (i, field, value) => {
     const teamMembers = [...form.teamMembers];
-    teamMembers[i][field] = value;
+    let formattedValue = value;
+    if (field === "name") {
+      formattedValue = value
+        .toLowerCase()
+        .replace(/\b\w/g, (l) => l.toUpperCase());
+    }
+    teamMembers[i][field] = formattedValue;
     setForm((p) => ({ ...p, teamMembers }));
   };
 
@@ -92,6 +120,10 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
     if (!form.ownerName.trim()) {
       return "Owner name is required";
     }
+
+    if (!form.city.trim()) return "City is required";
+    if (!form.state.trim()) return "State is required";
+    if (!form.country.trim()) return "Country is required";
 
     if (!form.bullPairs.length) {
       return "At least one bull pair is required";
@@ -161,6 +193,11 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
             info: m.info.trim(),
           })),
       ],
+      teamLocation: {
+        city: form.city.trim(),
+        state: form.state.trim(),
+        country: form.country.trim(),
+      },
     };
 
     setLoading(true);
@@ -175,6 +212,9 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
       setForm({
         teamName: "",
         ownerName: "",
+        city: "",
+        state: "",
+        country: "",
         bullPairs: [{ bullA: "", bullB: "", categoryKey: "senior" }],
         teamMembers: [{ name: "", role: "DRIVER", info: "" }],
       });
@@ -218,6 +258,29 @@ const CreateTeam = ({ onSubmit, onCancel }) => {
             name="ownerName"
             placeholder="Owner Name"
             value={form.ownerName}
+            onChange={handleChange}
+            className="border rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <input
+            name="city"
+            placeholder="City"
+            value={form.city}
+            onChange={handleChange}
+            className="border rounded-lg px-3 py-2 text-sm"
+          />
+          <input
+            name="state"
+            placeholder="State"
+            value={form.state}
+            onChange={handleChange}
+            className="border rounded-lg px-3 py-2 text-sm"
+          />
+          <input
+            name="country"
+            placeholder="Country"
+            value={form.country}
             onChange={handleChange}
             className="border rounded-lg px-3 py-2 text-sm"
           />

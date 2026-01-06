@@ -66,32 +66,7 @@ export default function Register() {
           transition={{ delay: 0.2 }}
           className="mb-3 text-center"
         >
-          {/* /* 
-          <motion.div
-            animate={{
-              scale: [1, 1.1, 1],
-              rotate: [0, 5, -5, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              repeatType: "reverse",
-            }}
-            className="inline-block mb-6"
-          >
-            <div className="relative">
-              <Zap className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 text-amber-400 drop-shadow-[0_0_15px_rgba(251,191,36,0.5)]" />
-              <motion.div
-                animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="absolute inset-0 bg-amber-400 rounded-full blur-lg sm:blur-xl
-"
-              />
-            </div>
-          </motion.div>
-          */}
-
-          <motion.h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-100 mb-2">
+          <motion.h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-amber-100 my-3">
             MANAEDLAPANDALU
           </motion.h1>
           <h2 className="text-amber-100">Register</h2>
