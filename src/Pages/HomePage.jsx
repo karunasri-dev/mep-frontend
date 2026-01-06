@@ -15,7 +15,6 @@ import {
   Trophy,
   Instagram,
 } from "lucide-react";
-import WhatsAppIcon from "../assets/whatsapp.svg?react";
 import { useState, useEffect } from "react";
 
 const YOUTUBE_LIVE_URL = "https://www.youtube.com/@pnr0463?si=_w2AdJJgZFGfh7aO";

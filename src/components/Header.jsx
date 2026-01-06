@@ -5,7 +5,7 @@ const Header = () => {
     <header className="relative w-full h-[400px] overflow-hidden text-white shadow-lg">
       {/* Background image */}
       <img
-        src="../../public/assets/background.webp"
+        src="/assets/background.webp"
         alt="Header background"
         width="1440"
         height="400"
@@ -32,7 +32,7 @@ const Header = () => {
             }}
           >
             <img
-              src="../../public/assets/bull1.webp"
+              src="/assets/bull1.webp"
               alt="Header background"
               loading="eager"
               className="w-14 h-14 rounded-full"
@@ -55,7 +55,7 @@ const Header = () => {
             }}
           >
             <img
-              src="../../public/assets/bull2.webp"
+              src="/assets/bull2.webp"
               alt="Header background"
               loading="eager"
               className="w-14 h-14 rounded-full"
@@ -72,7 +72,7 @@ const Header = () => {
             <div className="border-b-4 rounded-full border-amber-500 w-32"></div>
             <div className="w-10 h-10 md:w-16 md:h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-lg">
               <img
-                src="../../public/assets/bull2center.webp"
+                src="/assets/bull2center.webp"
                 alt="Header background"
                 loading="eager"
                 className="w-14 h-14 rounded-full"
