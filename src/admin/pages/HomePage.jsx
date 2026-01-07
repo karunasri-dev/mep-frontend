@@ -143,13 +143,13 @@ export default function Home() {
       subtitle: "Overview metrics",
       icon: BarChart3,
     },
-    {
-      id: "champions",
-      title: "Champions",
-      value: String(events.filter((e) => e.state === "COMPLETED").length),
-      subtitle: "Completed event winners",
-      icon: Award,
-    },
+    // {
+    //   id: "champions",
+    //   title: "Champions",
+    //   value: String(events.filter((e) => e.state === "COMPLETED").length),
+    //   subtitle: "Completed event winners",
+    //   icon: Award,
+    // },
   ];
 
   const activities = useMemo(() => {

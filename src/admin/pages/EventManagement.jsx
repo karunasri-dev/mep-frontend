@@ -8,6 +8,7 @@ import {
   updateEventDetails,
   deleteEvent,
 } from "../../services/events/event.api";
+import Swal from "sweetalert2";
 
 export default function EventManagement() {
   const [events, setEvents] = useState([]);
@@ -50,13 +51,21 @@ export default function EventManagement() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this event?")) return;
+    const result = await Swal.fire({
+      title: "Delete Event?",
+      text: "Are you sure you want to delete this event? This action cannot be undone.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+    });
+    if (!result.isConfirmed) return;
 
     try {
       await deleteEvent(id);
       setEvents((prev) => prev.filter((e) => e._id !== id));
     } catch {
-      alert("Delete failed");
+      Swal.fire("Error", "Delete failed", "error");
     }
   };
 
@@ -118,9 +127,7 @@ export default function EventManagement() {
           </div>
         ) : events.length === 0 ? (
           <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
-            <p className="text-stone-500 font-medium">
-              No events created yet.
-            </p>
+            <p className="text-stone-500 font-medium">No events created yet.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -132,7 +139,11 @@ export default function EventManagement() {
                 onDelete={() => handleDelete(event._id)}
                 // Pass a dummy handler or update logic if needed for state update from card
                 onStateUpdate={(updatedEvent) => {
-                  setEvents(prev => prev.map(e => e._id === updatedEvent._id ? updatedEvent : e));
+                  setEvents((prev) =>
+                    prev.map((e) =>
+                      e._id === updatedEvent._id ? updatedEvent : e
+                    )
+                  );
                 }}
               />
             ))}

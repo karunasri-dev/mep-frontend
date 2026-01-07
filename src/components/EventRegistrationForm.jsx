@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { X, GripHorizontal } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 export default function EventRegistrationForm({
   event,
@@ -9,9 +10,11 @@ export default function EventRegistrationForm({
   onSubmit,
   onClose,
 }) {
+  const { user } = useAuth();
   // Local state
 
   const [captainName, setCaptainName] = useState("");
+  const [contactMobile, setContactMobile] = useState("");
   const [selectedBullPairs, setSelectedBullPairs] = useState([]);
   const [selectedMembers, setSelectedMembers] = useState([]);
   const [submitting, setSubmitting] = useState(false);
@@ -28,6 +31,12 @@ export default function EventRegistrationForm({
 
   console.log("teamMembers", teamMembers);
   const owner = team?.teamMembers?.find((m) => m.role === "OWNER");
+
+  useEffect(() => {
+    if (user?.mobileNumber) {
+      setContactMobile(user.mobileNumber);
+    }
+  }, [user]);
 
   // Helpers
 
@@ -102,6 +111,11 @@ export default function EventRegistrationForm({
 
     if (!captainName.trim()) return setError("Captain name is required");
 
+    if (!contactMobile.trim()) return setError("Contact mobile is required");
+
+    if (!/^\d{10}$/.test(contactMobile.trim()))
+      return setError("Enter a valid 10-digit mobile number");
+
     if (!selectedBullPairs.length)
       return setError("Select at least one bull pair");
 
@@ -113,6 +127,7 @@ export default function EventRegistrationForm({
 
       await onSubmit({
         captainName: captainName.trim(),
+        contactMobile: contactMobile.trim(),
         bullPairs: selectedBullPairs, // UI IDs
         teamMembers: selectedMembers, // UI IDs
       });
@@ -145,9 +160,14 @@ export default function EventRegistrationForm({
         >
           <div className="flex items-center gap-2">
             <GripHorizontal size={18} className="text-stone-400" />
-            <h3 className="font-serif font-medium text-stone-800">Register for {event.title}</h3>
+            <h3 className="font-serif font-medium text-stone-800">
+              Register for {event.title}
+            </h3>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-stone-100 text-stone-600">
+          <button
+            onClick={onClose}
+            className="p-2 rounded-lg hover:bg-stone-100 text-stone-600"
+          >
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -172,7 +192,23 @@ export default function EventRegistrationForm({
           </div>
 
           <div>
-            <p className="font-medium text-sm mb-1 text-stone-700">Bull Pairs</p>
+            <label className="block text-sm font-medium mb-1 text-stone-700">
+              Contact Mobile Number
+            </label>
+            <input
+              type="tel"
+              className="input w-full"
+              value={contactMobile}
+              onChange={(e) => setContactMobile(e.target.value)}
+              placeholder="Enter 10-digit mobile number"
+              maxLength={10}
+            />
+          </div>
+
+          <div>
+            <p className="font-medium text-sm mb-1 text-stone-700">
+              Bull Pairs
+            </p>
             <div className="max-h-[120px] overflow-y-auto border border-stone-200 rounded-lg p-2 space-y-2">
               {bullPairs.map((b) => (
                 <div key={b._id} className="flex items-center gap-2">
@@ -192,7 +228,9 @@ export default function EventRegistrationForm({
           </div>
 
           <div>
-            <p className="font-medium text-sm mb-1 text-stone-700">Team Members</p>
+            <p className="font-medium text-sm mb-1 text-stone-700">
+              Team Members
+            </p>
             <div className="max-h-[120px] overflow-y-auto border border-stone-200 rounded-lg p-2 space-y-2">
               {teamMembers.map((m) => (
                 <div key={m._id} className="flex items-center gap-2">
@@ -212,10 +250,19 @@ export default function EventRegistrationForm({
           {error && <p className="text-sm text-red-600">{error}</p>}
 
           <div className="flex justify-end gap-3 pt-4 border-t border-stone-200">
-            <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg text-stone-600 hover:bg-stone-50">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={submitting}
+              className="px-4 py-2 rounded-lg text-stone-600 hover:bg-stone-50"
+            >
               Cancel
             </button>
-            <button type="submit" disabled={submitting} className="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 shadow-sm">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700 shadow-sm"
+            >
               {submitting ? "Submitting..." : "Submit Registration"}
             </button>
           </div>
