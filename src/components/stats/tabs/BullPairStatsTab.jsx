@@ -16,26 +16,26 @@ export default function BullPairStatsTab({ stats = [] }) {
   const highlights = useMemo(() => {
     if (!stats.length) return null;
 
-    const sortedByWinRate = [...stats].sort((a, b) => b.winRate - a.winRate);
-    const sortedByWins = [...stats].sort((a, b) => b.totalWins - a.totalWins);
+    const sortedByAvgRank = [...stats].sort((a, b) => (a.avgRank ?? 9999) - (b.avgRank ?? 9999));
+    const sortedByPodiums = [...stats].sort((a, b) => (b.podiumFinishes || 0) - (a.podiumFinishes || 0));
     const sortedByDistance = [...stats].sort((a, b) => (b.maxDistance || 0) - (a.maxDistance || 0));
 
     return {
-      bestWinRate: sortedByWinRate[0],
-      mostWins: sortedByWins[0],
+      bestAvgRank: sortedByAvgRank[0],
+      mostPodiums: sortedByPodiums[0],
       bestDistance: sortedByDistance[0],
     };
   }, [stats]);
 
   const chartData = useMemo(() => {
-    // Top 10 by Win Rate for the chart to avoid clutter
+    // Top 10 by Podium Finishes to avoid clutter
     return [...stats]
-      .sort((a, b) => b.winRate - a.winRate)
+      .sort((a, b) => (b.podiumFinishes || 0) - (a.podiumFinishes || 0))
       .slice(0, 10)
       .map((s) => ({
         name: s.bullPairName,
-        winRate: s.winRate,
-        wins: s.totalWins,
+        podiums: s.podiumFinishes,
+        avgRank: s.avgRank,
       }));
   }, [stats]);
 
@@ -51,20 +51,20 @@ export default function BullPairStatsTab({ stats = [] }) {
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {highlights?.bestWinRate && (
+        {highlights?.bestAvgRank && (
           <StatCard
-            title="Highest Win Rate"
-            value={`${highlights.bestWinRate.winRate}%`}
-            subValue={highlights.bestWinRate.bullPairName}
+            title="Best Average Rank"
+            value={`#${highlights.bestAvgRank.avgRank}`}
+            subValue={highlights.bestAvgRank.bullPairName}
             icon={TrendingUp}
             color="emerald"
           />
         )}
-        {highlights?.mostWins && (
+        {highlights?.mostPodiums && (
           <StatCard
-            title="Most Wins"
-            value={highlights.mostWins.totalWins}
-            subValue={highlights.mostWins.bullPairName}
+            title="Most Podiums"
+            value={highlights.mostPodiums.podiumFinishes}
+            subValue={highlights.mostPodiums.bullPairName}
             icon={Trophy}
             color="amber"
           />
@@ -83,7 +83,7 @@ export default function BullPairStatsTab({ stats = [] }) {
       {/* Primary Chart */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-6">
-          Top 10 Bull Pairs by Win Rate
+          Top 10 Bull Pairs by Podiums
         </h3>
         <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
@@ -108,10 +108,10 @@ export default function BullPairStatsTab({ stats = [] }) {
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />
               <Bar 
-                dataKey="winRate" 
-                fill="#10b981" 
+                dataKey="podiums" 
+                fill="#f59e0b" 
                 radius={[4, 4, 0, 0]} 
-                name="Win Rate %"
+                name="Podium Finishes"
                 maxBarSize={50}
               />
             </BarChart>
@@ -126,11 +126,11 @@ export default function BullPairStatsTab({ stats = [] }) {
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BullPair</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Win %</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Wins</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plays</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Podiums</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Best Rank</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Rank</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Best Dist.</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Prize</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -138,11 +138,11 @@ export default function BullPairStatsTab({ stats = [] }) {
               <tr key={idx} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{stat.bullPairName}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.teamName}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">{stat.winRate}%</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.totalWins}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.totalPlays}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.podiumFinishes}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{stat.bestRank}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{stat.avgRank}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{stat.maxDistance}m</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">₹{stat.totalPrizeWon}</td>
               </tr>
             ))}
           </tbody>

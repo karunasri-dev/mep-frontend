@@ -20,7 +20,7 @@ const Header = () => {
       <div className="relative container mx-auto px-4 py-6 z-10">
         <div className="flex items-center justify-center space-x-4 md:space-x-12 mt-10">
           <motion.div
-            className="w-11 h-11 sm:w-10 sm:h-10 md:w-10 bg-amber-800 rounded-full flex items-center justify-center shadow-lg"
+            className="w-11 h-11 sm:w-10 sm:h-10 md:w-16 md:h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-lg"
             animate={{
               y: ["-10px", "10px", "-10px"],
             }}
@@ -43,7 +43,7 @@ const Header = () => {
             </h1>
           </div>
           <motion.div
-            className="w-11 h-11 sm:w-10 sm:h-10 md:w-16 md:h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-lg"
+            className="w-11 h-11 sm:w-10 sm:h-10 md:w-16 md:h-16 bg-amber-800 rounded-full flex items-center justify-center shadow-lg"
             animate={{
               y: ["-10px", "10px", "-10px"],
             }}
@@ -54,7 +54,7 @@ const Header = () => {
             }}
           >
             <img
-              src="/assets/bull2.webp"
+              src="/assets/bull2center.webp"
               alt="Header background"
               loading="eager"
               className="w-10 h-10 sm:w-14 sm:h-14 rounded-full"
@@ -71,7 +71,7 @@ const Header = () => {
             <div className="border-b-4 rounded-full border-amber-500 w-32"></div>
             <div className="w-11 h-11 sm:w-10 sm:h-10 md:w-16 md:h-16 bg-amber-500 rounded-full flex items-center justify-center shadow-lg">
               <img
-                src="/assets/bull2center.webp"
+                src="/assets/logo.webp"
                 alt="Header background"
                 loading="eager"
                 className="w-10 h-10 sm:w-14 sm:h-14 rounded-full"

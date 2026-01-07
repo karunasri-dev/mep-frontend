@@ -96,7 +96,7 @@ function AdminRoutes() {
         <Route path="team-approval" element={<TeamApproval />} />
         <Route path="events" element={<EventManagement />} />
         <Route path="events/:eventId" element={<EventDetailsPage />} />
-        <Route path="champions" element={<ChampionManagement />} />
+        {/* <Route path="champions" element={<ChampionManagement />} /> */}
         <Route path="teams" element={<ActiveTeams />} />
         <Route path="teams-details/:id" element={<TeamDetails />} />
         <Route path="home" element={<Home />} />

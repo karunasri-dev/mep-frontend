@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate, useLocation, Link } from "react-router-dom";
+import Swal from "sweetalert2";
 import {
   getEventDaysPublic,
   getEventDaysAdmin,
@@ -9,7 +10,7 @@ import {
   getDayBullPairsPublic,
   updateDayBullPairStatus,
   updateDayBullPairPerformance,
-  setDayBullPairWinner,
+  calculateDayResults,
 } from "../services/events/performance.api";
 import { getEventById } from "../services/events/event.api";
 import {
@@ -328,38 +329,48 @@ function AdminControls({ entry, onUpdated, dayStatus }) {
         </button>
       )}
       {entry.gameStatus === "PLAYING" && (
-        <div className="flex flex-col gap-2 w-full md:w-80">
-          <div className="grid grid-cols-3 gap-2">
-            <input
-              type="number"
-              min="0"
-              className="p-2 border border-stone-200 rounded-lg text-xs"
-              placeholder="Rock kg"
-              value={perf.rockWeightKg}
-              onChange={(e) =>
-                setPerf({ ...perf, rockWeightKg: e.target.value })
-              }
-            />
-            <input
-              type="number"
-              min="0"
-              className="p-2 border border-stone-200 rounded-lg text-xs"
-              placeholder="Distance m"
-              value={perf.distanceMeters}
-              onChange={(e) =>
-                setPerf({ ...perf, distanceMeters: e.target.value })
-              }
-            />
-            <input
-              type="number"
-              min="0"
-              className="p-2 border border-stone-200 rounded-lg text-xs"
-              placeholder={timeUnit === "minutes" ? "Time min" : "Time s"}
-              value={perf.timeSeconds}
-              onChange={(e) =>
-                setPerf({ ...perf, timeSeconds: e.target.value })
-              }
-            />
+        <div className="flex flex-col gap-2 w-full md:w-100">
+          <div className="grid grid-cols-3 gap-2 md:gap-6">
+            <div>
+              <label className="text-xs">Rock Weight:</label>
+              <input
+                type="number"
+                min="0"
+                className="px-2 py-2 border border-stone-200 rounded-lg text-xs w-full"
+                placeholder="Rock kg"
+                value={perf.rockWeightKg}
+                onChange={(e) =>
+                  setPerf({ ...perf, rockWeightKg: e.target.value })
+                }
+              />
+            </div>
+            <div>
+              <label className="text-xs">Distance:</label>
+              <input
+                type="number"
+                min="0"
+                className="px-2 py-2 border border-stone-200 rounded-lg text-xs w-full"
+                placeholder="Distance m"
+                value={perf.distanceMeters}
+                onChange={(e) =>
+                  setPerf({ ...perf, distanceMeters: e.target.value })
+                }
+              />
+            </div>
+
+            <div>
+              <label className="text-xs">Time:</label>
+              <input
+                type="number"
+                min="0"
+                className="px-2 py-2 border border-stone-200 rounded-lg text-xs w-full"
+                placeholder={timeUnit === "minutes" ? "Time min" : "Time s"}
+                value={perf.timeSeconds}
+                onChange={(e) =>
+                  setPerf({ ...perf, timeSeconds: e.target.value })
+                }
+              />
+            </div>
           </div>
           <div className="text-xs text-stone-600">
             <label className="mr-2">Time unit:</label>
@@ -462,8 +473,15 @@ function AdminControls({ entry, onUpdated, dayStatus }) {
                 <div className="flex gap-2">
                   <button
                     onClick={async () => {
-                      const confirmed = window.confirm("Save edited score?");
-                      if (!confirmed) return;
+                      const result = await Swal.fire({
+                        title: "Save edited score?",
+                        text: "This will update the performance data.",
+                        icon: "question",
+                        showCancelButton: true,
+                        confirmButtonText: "Save",
+                        cancelButtonText: "Cancel",
+                      });
+                      if (!result.isConfirmed) return;
                       try {
                         const seconds =
                           timeUnit === "minutes"
@@ -504,29 +522,6 @@ function AdminControls({ entry, onUpdated, dayStatus }) {
             )}
           </>
         )}
-      {entry.gameStatus === "COMPLETED" && (
-        <button
-          onClick={async () => {
-            try {
-              const res = await setDayBullPairWinner(entry._id);
-              onUpdated(res.data.data);
-            } catch (err) {
-              const msg =
-                err?.response?.data?.message ||
-                err?.message ||
-                "Failed to mark winner";
-              import("react-hot-toast").then(({ toast }) => toast.error(msg));
-            }
-          }}
-          className={`px-3 py-1 rounded-lg text-xs ${
-            entry.isWinner
-              ? "bg-emerald-700 text-white"
-              : "bg-emerald-50 text-emerald-700 border border-emerald-100"
-          }`}
-        >
-          {entry.isWinner ? "Winner" : "Mark Winner"}
-        </button>
-      )}
     </div>
   );
 }
@@ -645,178 +640,320 @@ function DayBullPairsSection({
     }
   }, [eventId, isAdmin]);
 
+  const resultsCalculated =
+    entries.length > 0 && entries.every((e) => e.resultCalculated);
+  const allCompleted =
+    entries.length > 0 && entries.every((e) => e.gameStatus === "COMPLETED");
+
+  const byCategory = useMemo(() => {
+    if (!resultsCalculated) return null;
+    const groups = {};
+    entries.forEach((e) => {
+      const cat = e.category?.value || "Unknown";
+      if (!groups[cat]) groups[cat] = [];
+      groups[cat].push(e);
+    });
+    // Sort each group by rank
+    Object.keys(groups).forEach((k) => {
+      groups[k].sort((a, b) => (a.rank || 0) - (b.rank || 0));
+    });
+    return groups;
+  }, [entries, resultsCalculated]);
+
+  const handleCalculate = async () => {
+    const isRecalc = resultsCalculated;
+    const message = isRecalc
+      ? "Recalculate results? This will update existing rankings."
+      : "Calculate results? This cannot be undone.";
+    const result = await Swal.fire({
+      title: isRecalc ? "Recalculate Results" : "Calculate Results",
+      text: message,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: isRecalc ? "Recalculate" : "Calculate",
+      cancelButtonText: "Cancel",
+    });
+    if (!result.isConfirmed) return;
+    try {
+      await calculateDayResults(dayId);
+      // Refresh entries
+      const res = await getDayBullPairsPublic(dayId);
+      setEntries(res.data.data || []);
+      import("react-hot-toast").then(({ toast }) =>
+        toast.success(
+          isRecalc ? "Results recalculated!" : "Results calculated!"
+        )
+      );
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to calculate results";
+      import("react-hot-toast").then(({ toast }) => toast.error(msg));
+    }
+  };
+
+  if (resultsCalculated) {
+    return (
+      <div className="mt-6 space-y-8">
+        {Object.entries(byCategory).map(([category, catEntries]) => (
+          <div
+            key={category}
+            className="bg-white rounded-xl shadow-sm border border-stone-200 overflow-hidden"
+          >
+            <div className="bg-stone-50 px-6 py-4 border-b border-stone-200">
+              <h3 className="text-lg font-serif font-medium text-stone-800">
+                {category}
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-stone-50 border-b border-stone-200">
+                  <tr>
+                    <th className="px-6 py-3 font-medium text-stone-500">
+                      Rank
+                    </th>
+                    <th className="px-6 py-3 font-medium text-stone-500">
+                      Bull Pair
+                    </th>
+                    <th className="px-6 py-3 font-medium text-stone-500">
+                      Team
+                    </th>
+                    <th className="px-6 py-3 font-medium text-stone-500 text-right">
+                      Performance
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-stone-100">
+                  {catEntries.map((entry) => (
+                    <tr key={entry._id} className="hover:bg-stone-50">
+                      <td className="px-6 py-4 font-bold text-stone-800">
+                        #{entry.rank}
+                      </td>
+                      <td className="px-6 py-4 text-stone-800">
+                        {entry.bullPair?.name || "Unknown"}
+                      </td>
+                      <td className="px-6 py-4 text-stone-600">
+                        {entry.team?.teamName || "Unknown"}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="font-medium text-stone-800">
+                          {entry.performance?.distanceMeters}m
+                        </div>
+                        <div className="text-xs text-stone-500">
+                          {((entry.performance?.timeSeconds || 0) / 60).toFixed(
+                            2
+                          )}{" "}
+                          min • {entry.performance?.rockWeightKg}kg
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="mt-4">
       <div className="p-4 border-b border-stone-200 bg-stone-50 flex justify-between items-center">
         <h3 className="font-serif font-medium text-stone-800">BullPairs</h3>
-        {isAdmin && (
-          <button
-            onClick={() => setAdding((v) => !v)}
-            className="px-3 py-2 bg-stone-800 text-white rounded-lg text-sm"
-            disabled={dayStatus === "COMPLETED"}
-          >
-            {dayStatus === "COMPLETED"
-              ? "Day Completed"
-              : adding
-              ? "Close Selection"
-              : "Add BullPairs"}
-          </button>
-          // <button
-          //   onClick={() => setAdding((v) => !v)}
-          //   className="px-3 py-2 bg-stone-800 text-white rounded-lg text-sm"
-          //   disabled={dayStatus !== "UPCOMING"}
-          // >
-          //   {dayStatus !== "UPCOMING"
-          //     ? "Selection Locked"
-          //     : adding
-          //     ? "Close Selection"
-          //     : "Add BullPairs"}
-          // </button>
-        )}
+        <div className="flex gap-2">
+          {isAdmin && allCompleted && (
+            <button
+              onClick={handleCalculate}
+              className="px-3 py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700"
+            >
+              {resultsCalculated ? "Recalculate Results" : "Calculate Results"}
+            </button>
+          )}
+          {isAdmin && !resultsCalculated && (
+            <button
+              onClick={() => setAdding((v) => !v)}
+              className="px-3 py-2 bg-stone-800 text-white rounded-lg text-sm"
+              disabled={dayStatus === "COMPLETED"}
+            >
+              {dayStatus === "COMPLETED"
+                ? "Day Completed"
+                : adding
+                ? "Close Selection"
+                : "Add BullPairs"}
+            </button>
+          )}
+        </div>
       </div>
 
-      {adding && isAdmin && (
-        <div className="p-4 border border-stone-200 rounded-lg mt-3">
-          <p className="text-sm text-stone-600 mb-2">
-            Select bullPairs from approved registrations
-          </p>
-          <div className="space-y-2 max-h-64 overflow-y-auto">
-            {approvedTeams.map((item) => (
-              <div key={item.registrationId} className="border-b pb-2">
-                <div className="font-medium text-stone-800">
-                  {item.team.teamName}
-                </div>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {(item.team.bullPairs || [])
-                    .filter((bp) =>
-                      (item.selectedBullPairs || []).includes(
-                        bp._id?.toString()
-                      )
-                    )
-                    .map((bp) => (
-                      <label
-                        key={bp._id}
-                        className="flex items-center gap-2 px-2 py-1 border border-stone-200 rounded-lg text-sm"
-                      >
-                        <input
-                          type="checkbox"
-                          value={bp._id}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            const key = `${item.registrationId}:${item.team._id}:${bp._id}`;
-                            setSelected((prev) =>
-                              checked
-                                ? [...prev, key]
-                                : prev.filter((k) => k !== key)
-                            );
-                          }}
-                        />
-                        <span>
-                          {bp.bullA?.name} & {bp.bullB?.name} •{" "}
-                          {bp.category?.type}/{bp.category?.value}
-                        </span>
-                      </label>
-                    ))}
-                </div>
-              </div>
-            ))}
+      {adding && (
+        <div className="p-4 border-b border-stone-200 bg-stone-50 animate-in fade-in slide-in-from-top-2">
+          <div className="space-y-4">
+            <div className="flex gap-2">
+              <select
+                className="flex-1 p-2 border border-stone-300 rounded-lg text-sm"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (!val) return;
+                  const [tId, bpId] = val.split(":");
+                  if (selected.some((s) => s.bullPairId === bpId)) return;
+                  setSelected((prev) => [
+                    ...prev,
+                    { teamId: tId, bullPairId: bpId },
+                  ]);
+                }}
+                value=""
+              >
+                <option value="">Select Team BullPair...</option>
+                {approvedTeams.map((t) =>
+                  (t.selectedBullPairs || []).map((bpId, idx) => {
+                    const bpObj = t.team.bullPairs.find((b) => b._id === bpId);
+                    const name = bpObj
+                      ? `${bpObj.bullA?.name} & ${bpObj.bullB?.name}`
+                      : `BullPair ${idx + 1}`;
+                    return (
+                      <option key={bpId} value={`${t.team._id}:${bpId}`}>
+                        {t.team.teamName} - {name}
+                      </option>
+                    );
+                  })
+                )}
+              </select>
+              <button
+                onClick={async () => {
+                  if (selected.length === 0) return;
+                  try {
+                    const payload = selected.map((s) => {
+                      const t = approvedTeams.find(
+                        (at) => at.team._id === s.teamId
+                      );
+                      return {
+                        registrationId: t.registrationId,
+                        teamId: s.teamId,
+                        bullPairId: s.bullPairId,
+                      };
+                    });
+                    await addBullPairsToDay(dayId, payload);
+                    setAdding(false);
+                    setSelected([]);
+                    const res = await getDayBullPairsPublic(dayId);
+                    setEntries(res.data.data || []);
+                  } catch (err) {
+                    const msg =
+                      err?.response?.data?.message ||
+                      err?.message ||
+                      "Failed to add bullpairs";
+                    import("react-hot-toast").then(({ toast }) =>
+                      toast.error(msg)
+                    );
+                  }
+                }}
+                className="px-4 py-2 bg-stone-800 text-white rounded-lg text-sm"
+              >
+                Add Selected ({selected.length})
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {selected.map((s) => {
+                const team = approvedTeams.find((t) => t.team._id === s.teamId);
+                const bp = team?.team.bullPairs.find(
+                  (b) => b._id === s.bullPairId
+                );
+                const bpCategory = bp?.category.value;
+                const name = bp
+                  ? `${bp.bullA?.name} & ${bp.bullB?.name}`
+                  : `BullPair ${s.bullPairId.slice(-4)}`;
+                return (
+                  <span
+                    key={s.bullPairId}
+                    className="px-2 py-1 bg-white border border-stone-200 rounded text-xs flex items-center gap-1"
+                  >
+                    {name} -{bpCategory ? ` ${bpCategory}` : ""} (
+                    {team?.team.teamName})
+                    <button
+                      onClick={() =>
+                        setSelected((prev) =>
+                          prev.filter((p) => p.bullPairId !== s.bullPairId)
+                        )
+                      }
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      ×
+                    </button>
+                  </span>
+                );
+              })}
+            </div>
           </div>
-          <button
-            onClick={async () => {
-              try {
-                const entriesPayload = selected.map((k) => {
-                  const [registrationId, teamId, bullPairId] = k.split(":");
-                  return { registrationId, teamId, bullPairId };
-                });
-                const res = await addBullPairsToDay(dayId, entriesPayload);
-                setEntries(res.data.data || []);
-                setAdding(false);
-                setSelected([]);
-              } catch (err) {
-                const msg =
-                  err?.response?.data?.message ||
-                  err?.message ||
-                  "Failed to add bullPairs";
-                import("react-hot-toast").then(({ toast }) => toast.error(msg));
-              }
-            }}
-            className="mt-3 px-3 py-2 bg-amber-600 text-white rounded-lg text-sm"
-          >
-            Add Selected
-          </button>
         </div>
       )}
 
-      <div className="divide-y mt-3">
-        {entries.length === 0 ? (
-          <div className="p-8 text-center text-stone-500">
-            No bullPairs added for this day.
-          </div>
-        ) : (
-          entries.map((entry) => (
+      {entries.length === 0 ? (
+        <div className="p-8 text-center text-stone-500 italic">
+          No bull pairs added to this day yet.
+        </div>
+      ) : (
+        <div className="divide-y divide-stone-100">
+          {entries.map((entry) => (
             <div
               key={entry._id}
-              className="p-4 flex items-start justify-between hover:bg-stone-50 transition-colors group"
+              className={`p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${
+                entry.gameStatus === "PLAYING" ? "bg-amber-50" : ""
+              }`}
             >
               <div>
-                <p className="font-medium text-stone-800 group-hover:text-amber-700 transition-colors">
-                  {entry.team?.teamName || "Team"}
-                </p>
-                <p className="text-xs text-stone-500">
-                  {entry.bullPair?.category?.value}
-                </p>
-                <p className="text-sm text-stone-600">
-                  {entry.bullPair?.name || "Bull Pair"}
-                </p>
-
-                {entry.isWinner && (
-                  <p className="mt-1 text-xs font-semibold text-emerald-700">
-                    Winner of the Day
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col items-end gap-2">
                 <div className="flex items-center gap-2">
-                  {entry.gameStatus === "COMPLETED" ? (
-                    <span className="flex items-center gap-1 text-xs font-medium bg-emerald-50 text-emerald-700 px-2 py-1 rounded border border-emerald-100">
-                      <Activity size={12} /> Completed
-                    </span>
-                  ) : entry.gameStatus === "PLAYING" ? (
-                    <span className="flex items-center gap-1 text-xs font-medium bg-amber-50 text-amber-700 px-2 py-1 rounded border border-amber-100">
-                      <Activity size={12} /> Playing
-                    </span>
-                  ) : (
-                    <span className="text-xs font-medium bg-stone-100 text-stone-600 px-2 py-1 rounded border border-stone-200">
-                      Next
+                  <h4 className="font-medium text-stone-800">
+                    {entry.bullPair?.name}
+                  </h4>
+                  <span
+                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      entry.gameStatus === "COMPLETED"
+                        ? "bg-stone-100 text-stone-600"
+                        : entry.gameStatus === "PLAYING"
+                        ? "bg-amber-100 text-amber-700 animate-pulse"
+                        : "bg-stone-100 text-stone-400"
+                    }`}
+                  >
+                    {entry.gameStatus}
+                  </span>
+                  {entry.category?.value && (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-100">
+                      {entry.category.value.replace(/_/g, " ")}
                     </span>
                   )}
                 </div>
-                {entry.performance && entry.gameStatus !== "NEXT" && (
-                  <div className="text-xs text-stone-600 flex md:flex-wrap flex-col">
-                    <span className="mr-2">
-                      Distance: {entry.performance.distanceMeters}m
+                <p className="text-sm text-stone-500">{entry.team?.teamName}</p>
+                {(entry.performance?.distanceMeters > 0 ||
+                  entry.performance?.timeSeconds > 0) && (
+                  <div className="mt-1 text-xs text-stone-600 flex gap-3">
+                    <span>📏 {entry.performance?.distanceMeters}m</span>
+                    <span>
+                      ⏱{" "}
+                      {((entry.performance?.timeSeconds || 0) / 60).toFixed(2)}{" "}
+                      min
                     </span>
-                    <span className="mr-2">
-                      Time: {entry.performance.timeSeconds}s
-                    </span>
-                    <span>Rock: {entry.performance.rockWeightKg} kg</span>
+                    <span>🪨 {entry.performance?.rockWeightKg}kg</span>
                   </div>
                 )}
-                {isAdmin && (
-                  <AdminControls
-                    entry={entry}
-                    onUpdated={(updated) =>
-                      setEntries((prev) =>
-                        prev.map((e) => (e._id === updated._id ? updated : e))
-                      )
-                    }
-                  />
-                )}
               </div>
+
+              {isAdmin && (
+                <AdminControls
+                  entry={entry}
+                  dayStatus={dayStatus}
+                  onUpdated={(updated) => {
+                    setEntries((prev) =>
+                      prev.map((e) => (e._id === updated._id ? updated : e))
+                    );
+                  }}
+                />
+              )}
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

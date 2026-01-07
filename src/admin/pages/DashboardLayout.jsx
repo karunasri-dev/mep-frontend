@@ -17,7 +17,7 @@ const adminTabs = [
     label: "Event Registrations",
     path: "/admin/registrations",
   },
-  { id: "champions", label: "Champions", path: "/admin/champions" },
+  // { id: "champions", label: "Champions", path: "/admin/champions" },
 ];
 
 export default function Dashboard() {

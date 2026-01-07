@@ -152,6 +152,57 @@ export default function Login() {
             {errors.password && (
               <p className="text-red-400 text-sm mt-1">{errors.password}</p>
             )}
+            <div className="mt-4 space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowForgot((v) => !v)}
+                className="w-full text-sm text-right text-amber-300/80 hover:text-amber-200"
+              >
+                {showForgot ? "Close Forgot Password" : "Forgot Password?"}
+              </button>
+              {showForgot && (
+                <div className="mt-2 space-y-2">
+                  <label className="text-sm text-amber-200">
+                    Enter Mobile Number
+                  </label>
+                  <motion.input
+                    whileFocus={{ scale: 1.02 }}
+                    type="tel"
+                    maxLength={10}
+                    value={forgotMobile}
+                    onChange={(e) => setForgotMobile(e.target.value)}
+                    className="w-full py-3 rounded-xl bg-amber-900/50 border border-amber-700/50 text-amber-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 px-3"
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        if (!/^[6-9]\d{9}$/.test(forgotMobile)) {
+                          toast.error("Enter a valid 10-digit mobile number");
+                          return;
+                        }
+                        await forgotPasswordAPI(forgotMobile);
+                        toast.success(
+                          "Reset code sent to your mobile number. Please check your SMS and follow the instructions."
+                        );
+                        setShowForgot(false); // Close the forgot password form
+                      } catch (err) {
+                        const message =
+                          err.response?.data?.message ||
+                          err.message ||
+                          "Failed to generate reset token";
+                        toast.error(message);
+                      }
+                    }}
+                    className="w-full bg-linear-to-r from-stone-700 to-stone-900 text-white py-3 rounded-xl border border-stone-600 transition"
+                  >
+                    Send Reset Request
+                  </motion.button>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* SUBMIT */}
@@ -194,57 +245,6 @@ export default function Login() {
             </button>
           </motion.div>
         </form>
-        <div className="mt-4 space-y-2">
-          <button
-            type="button"
-            onClick={() => setShowForgot((v) => !v)}
-            className="w-full text-sm text-amber-300/80 hover:text-amber-200"
-          >
-            {showForgot ? "Close Forgot Password" : "Forgot Password?"}
-          </button>
-          {showForgot && (
-            <div className="mt-2 space-y-2">
-              <label className="text-sm text-amber-200">
-                Enter Mobile Number
-              </label>
-              <motion.input
-                whileFocus={{ scale: 1.02 }}
-                type="tel"
-                maxLength={10}
-                value={forgotMobile}
-                onChange={(e) => setForgotMobile(e.target.value)}
-                className="w-full py-3 rounded-xl bg-amber-900/50 border border-amber-700/50 text-amber-100 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 px-3"
-              />
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                type="button"
-                onClick={async () => {
-                  try {
-                    if (!/^[6-9]\d{9}$/.test(forgotMobile)) {
-                      toast.error("Enter a valid 10-digit mobile number");
-                      return;
-                    }
-                    await forgotPasswordAPI(forgotMobile);
-                    toast.success(
-                      "Reset code sent to your mobile number. Please check your SMS and follow the instructions."
-                    );
-                    setShowForgot(false); // Close the forgot password form
-                  } catch (err) {
-                    const message =
-                      err.response?.data?.message ||
-                      err.message ||
-                      "Failed to generate reset token";
-                    toast.error(message);
-                  }
-                }}
-                className="w-full bg-linear-to-r from-stone-700 to-stone-900 text-white py-3 rounded-xl border border-stone-600 transition"
-              >
-                Send Reset Request
-              </motion.button>
-            </div>
-          )}
-        </div>
       </motion.div>
     </div>
   );

@@ -7,6 +7,7 @@ import { getAllEvents } from "../../services/events/event.api";
 import { getTeamByIdApi } from "../../services/teams/index";
 import { Check, X, ChevronDown } from "lucide-react";
 import { toast } from "react-hot-toast";
+import Swal from "sweetalert2";
 
 export default function AdminEventRegistrations() {
   const [events, setEvents] = useState([]);
@@ -56,8 +57,12 @@ export default function AdminEventRegistrations() {
       const missingTeamIds = [
         ...new Set(
           regs
-            .filter((r) => !Array.isArray(r.team?.bullPairs) || r.team.bullPairs.length === 0)
-            .map((r) => (r.team?._id || r.team))
+            .filter(
+              (r) =>
+                !Array.isArray(r.team?.bullPairs) ||
+                r.team.bullPairs.length === 0
+            )
+            .map((r) => r.team?._id || r.team)
             .filter(Boolean)
         ),
       ];
@@ -76,8 +81,20 @@ export default function AdminEventRegistrations() {
       const enriched = regs.map((r) => {
         const t = r.team;
         const teamId = t?._id || t;
-        const fill = (!t || !Array.isArray(t.bullPairs) || t.bullPairs.length === 0) ? teamMap.get(teamId) : null;
-        return fill ? { ...r, team: { _id: fill._id, teamName: fill.teamName, bullPairs: fill.bullPairs } } : r;
+        const fill =
+          !t || !Array.isArray(t.bullPairs) || t.bullPairs.length === 0
+            ? teamMap.get(teamId)
+            : null;
+        return fill
+          ? {
+              ...r,
+              team: {
+                _id: fill._id,
+                teamName: fill.teamName,
+                bullPairs: fill.bullPairs,
+              },
+            }
+          : r;
       });
 
       setRegistrations(enriched);
@@ -90,7 +107,15 @@ export default function AdminEventRegistrations() {
   };
 
   const handleApprove = async (id) => {
-    if (!window.confirm("Approve this registration?")) return;
+    const result = await Swal.fire({
+      title: "Approve Registration?",
+      text: "This will approve the team registration for the event.",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Approve",
+      cancelButtonText: "Cancel",
+    });
+    if (!result.isConfirmed) return;
 
     setActionLoading(id);
     try {
@@ -151,7 +176,7 @@ export default function AdminEventRegistrations() {
               Manage participant registrations for your events
             </p>
           </div>
-          
+
           {/* Event Selector */}
           <div className="relative">
             <select
@@ -174,7 +199,9 @@ export default function AdminEventRegistrations() {
         {loading ? (
           <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
             <div className="inline-block animate-spin w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full mb-4"></div>
-            <p className="text-stone-500 font-medium">Loading registrations...</p>
+            <p className="text-stone-500 font-medium">
+              Loading registrations...
+            </p>
           </div>
         ) : registrations.length === 0 ? (
           <div className="bg-white rounded-xl p-12 text-center border border-stone-200 shadow-sm">
@@ -207,13 +234,19 @@ export default function AdminEventRegistrations() {
                 </thead>
                 <tbody className="divide-y divide-stone-100">
                   {registrations.map((reg) => (
-                    <tr key={reg._id} className="hover:bg-stone-50 transition-colors">
+                    <tr
+                      key={reg._id}
+                      className="hover:bg-stone-50 transition-colors"
+                    >
                       <td className="px-6 py-4">
                         <div className="font-medium text-stone-800">
                           {reg.team?.teamName || "Unknown Team"}
                         </div>
                         <div className="text-sm text-stone-500">
                           Captain: {reg.captainName || "N/A"}
+                        </div>
+                        <div className="text-sm text-stone-500">
+                          Mobile: {reg.contactMobile || "N/A"}
                         </div>
                         <div className="text-xs text-stone-400">
                           Reg. by: {reg.registeredBy?.username || "N/A"}
@@ -224,12 +257,14 @@ export default function AdminEventRegistrations() {
                           const selectedIds = (reg.bullPairs || []).map((id) =>
                             typeof id === "string" ? id : id?.toString()
                           );
-                          const pairs = (reg.team?.bullPairs || []).filter((bp) =>
-                            selectedIds.includes(bp?._id?.toString())
+                          const pairs = (reg.team?.bullPairs || []).filter(
+                            (bp) => selectedIds.includes(bp?._id?.toString())
                           );
                           if (!pairs.length) return "N/A";
                           return pairs
-                            .map((bp) => `${bp.bullA?.name} & ${bp.bullB?.name}`)
+                            .map(
+                              (bp) => `${bp.bullA?.name} & ${bp.bullB?.name}`
+                            )
                             .join(", ");
                         })()}
                       </td>
@@ -238,12 +273,14 @@ export default function AdminEventRegistrations() {
                           const selectedIds = (reg.bullPairs || []).map((id) =>
                             typeof id === "string" ? id : id?.toString()
                           );
-                          const pairs = (reg.team?.bullPairs || []).filter((bp) =>
-                            selectedIds.includes(bp?._id?.toString())
+                          const pairs = (reg.team?.bullPairs || []).filter(
+                            (bp) => selectedIds.includes(bp?._id?.toString())
                           );
                           const categories = [
                             ...new Set(
-                              pairs.map((bp) => bp?.category?.value).filter(Boolean)
+                              pairs
+                                .map((bp) => bp?.category?.value)
+                                .filter(Boolean)
                             ),
                           ];
                           return categories.length ? (
@@ -324,7 +361,9 @@ export default function AdminEventRegistrations() {
                   disabled={actionLoading === rejectModal.id}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm"
                 >
-                  {actionLoading === rejectModal.id ? "Rejecting..." : "Confirm Reject"}
+                  {actionLoading === rejectModal.id
+                    ? "Rejecting..."
+                    : "Confirm Reject"}
                 </button>
               </div>
             </div>

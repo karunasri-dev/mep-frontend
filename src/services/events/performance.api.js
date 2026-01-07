@@ -76,3 +76,7 @@ export const updateDayBullPairPerformance = (entryId, data) => {
 export const setDayBullPairWinner = (entryId) => {
   return api.patch(`/api/admin/day-bullpairs/${entryId}/winner`);
 };
+
+export const calculateDayResults = (dayId) => {
+  return api.post(`/api/admin/event-days/${dayId}/calculate-results`);
+};

@@ -114,23 +114,20 @@ export default function LeaderboardTab() {
   // Derived Data
   const highlights = useMemo(() => {
     if (!leaderboard.length) return null;
-    const winner = leaderboard.find(l => l.isWinner);
     const sortedByDistance = [...leaderboard].sort((a, b) => (b.distanceMeters || 0) - (a.distanceMeters || 0));
     const sortedByTime = [...leaderboard].sort((a, b) => (a.timeSeconds || 9999) - (b.timeSeconds || 9999));
-
     return {
-      winner: winner || sortedByDistance[0], // Fallback to best distance if no winner marked
       bestDistance: sortedByDistance[0],
       bestTime: sortedByTime[0]
     };
   }, [leaderboard]);
 
   const chartData = useMemo(() => {
-    return leaderboard.map((entry, index) => ({
+    return leaderboard.map((entry) => ({
       name: entry.bullPair,
       distance: entry.distanceMeters || 0,
       time: entry.timeSeconds || 0,
-      rank: index + 1,
+      rank: entry.rank || null,
     })).slice(0, 10); // Top 10
   }, [leaderboard]);
 
@@ -189,19 +186,10 @@ export default function LeaderboardTab() {
         <>
           {/* Highlights */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {highlights?.winner && (
-              <StatCard
-                title="Winner"
-                value={`${highlights.winner.distanceMeters}m`}
-                subValue={highlights.winner.bullPair}
-                icon={Trophy}
-                color="amber"
-              />
-            )}
             {highlights?.bestTime && (
               <StatCard
                 title="Best Time"
-                value={`${highlights.bestTime.timeSeconds}s`}
+                value={`${(highlights.bestTime.timeSeconds / 60).toFixed(2)} min`}
                 subValue={highlights.bestTime.bullPair}
                 icon={Clock}
                 color="blue"
@@ -257,38 +245,48 @@ export default function LeaderboardTab() {
             </div>
           </div>
 
-          {/* Details Table */}
-          <DetailsSection title="Full Leaderboard">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BullPair</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {leaderboard.map((entry, idx) => (
-                  <tr key={idx} className={`hover:bg-gray-50 transition-colors ${entry.isWinner ? 'bg-amber-50/50' : ''}`}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{idx + 1}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{entry.bullPair}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{entry.team}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{entry.distanceMeters}m</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{entry.timeSeconds}s</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {entry.isWinner && (
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                          Winner
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Category-wise Rankings */}
+          <DetailsSection title="Category-wise Rankings">
+            <div className="space-y-8">
+              {Object.entries(
+                leaderboard.reduce((acc, e) => {
+                  const key = e.category || "UNKNOWN";
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(e);
+                  return acc;
+                }, {})
+              ).map(([category, entries]) => (
+                <div key={category} className="bg-white rounded-xl border border-gray-100 shadow-sm">
+                  <div className="px-6 py-3 border-b bg-gray-50 text-sm font-semibold text-gray-700">
+                    {category}
+                  </div>
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-white">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BullPair</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time (min)</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rock Weight</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {entries.map((entry, idx) => (
+                        <tr key={`${category}-${idx}`} className="hover:bg-gray-50 transition-colors">
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{entry.rank || idx + 1}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{entry.bullPair}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{entry.team}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{entry.distanceMeters}m</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{((entry.timeSeconds || 0) / 60).toFixed(2)} min</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{entry.rockWeightKg}kg</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
           </DetailsSection>
         </>
       )}
