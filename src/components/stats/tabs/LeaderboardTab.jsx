@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+import { BarChart } from "recharts/es6/chart/BarChart";
+import { Bar } from "recharts/es6/cartesian/Bar";
+import { XAxis } from "recharts/es6/cartesian/XAxis";
+import { YAxis } from "recharts/es6/cartesian/YAxis";
+import { CartesianGrid } from "recharts/es6/cartesian/CartesianGrid";
+import { Tooltip } from "recharts/es6/component/Tooltip";
+import { ResponsiveContainer } from "recharts/es6/component/ResponsiveContainer";
+
 import { Trophy, Clock, Zap } from "lucide-react";
 import StatCard from "../StatCard";
 import DetailsSection from "../DetailsSection";
@@ -19,10 +18,10 @@ export default function LeaderboardTab() {
   const [events, setEvents] = useState([]);
   const [days, setDays] = useState([]);
   const [leaderboard, setLeaderboard] = useState([]);
-  
+
   const [selectedEventId, setSelectedEventId] = useState("");
   const [selectedDayId, setSelectedDayId] = useState("");
-  
+
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [loadingDays, setLoadingDays] = useState(false);
   const [loadingLeaderboard, setLoadingLeaderboard] = useState(false);
@@ -36,7 +35,7 @@ export default function LeaderboardTab() {
         const res = await getAllEvents();
         const eventList = res.data.data || [];
         setEvents(eventList);
-        
+
         // Auto-select latest event
         if (eventList.length > 0) {
           // Assuming the list might be sorted or we sort by date if available.
@@ -71,10 +70,10 @@ export default function LeaderboardTab() {
 
         // Auto-select latest day (or first day)
         if (dayList.length > 0) {
-           // Usually we want the latest completed day. 
-           // If they are sorted by date, maybe last one? 
-           // Let's pick the last one assuming chronological order.
-           setSelectedDayId(dayList[dayList.length - 1]._id);
+          // Usually we want the latest completed day.
+          // If they are sorted by date, maybe last one?
+          // Let's pick the last one assuming chronological order.
+          setSelectedDayId(dayList[dayList.length - 1]._id);
         } else {
           setSelectedDayId("");
           setLeaderboard([]);
@@ -114,32 +113,44 @@ export default function LeaderboardTab() {
   // Derived Data
   const highlights = useMemo(() => {
     if (!leaderboard.length) return null;
-    const sortedByDistance = [...leaderboard].sort((a, b) => (b.distanceMeters || 0) - (a.distanceMeters || 0));
-    const sortedByTime = [...leaderboard].sort((a, b) => (a.timeSeconds || 9999) - (b.timeSeconds || 9999));
+    const sortedByDistance = [...leaderboard].sort(
+      (a, b) => (b.distanceMeters || 0) - (a.distanceMeters || 0)
+    );
+    const sortedByTime = [...leaderboard].sort(
+      (a, b) => (a.timeSeconds || 9999) - (b.timeSeconds || 9999)
+    );
     return {
       bestDistance: sortedByDistance[0],
-      bestTime: sortedByTime[0]
+      bestTime: sortedByTime[0],
     };
   }, [leaderboard]);
 
   const chartData = useMemo(() => {
-    return leaderboard.map((entry) => ({
-      name: entry.bullPair,
-      distance: entry.distanceMeters || 0,
-      time: entry.timeSeconds || 0,
-      rank: entry.rank || null,
-    })).slice(0, 10); // Top 10
+    return leaderboard
+      .map((entry) => ({
+        name: entry.bullPair,
+        distance: entry.distanceMeters || 0,
+        time: entry.timeSeconds || 0,
+        rank: entry.rank || null,
+      }))
+      .slice(0, 10); // Top 10
   }, [leaderboard]);
 
   if (loadingEvents) {
-    return <div className="text-center py-12 text-gray-500">Loading events...</div>;
+    return (
+      <div className="text-center py-12 text-gray-500">Loading events...</div>
+    );
   }
 
   if (error || (!loadingEvents && events.length === 0)) {
     return (
       <div className="text-center py-12 bg-white rounded-xl border border-dashed border-gray-300">
-        <h3 className="text-lg font-medium text-gray-900">Leaderboard Coming Soon</h3>
-        <p className="text-gray-500 mt-2">Stay tuned for the first event results!</p>
+        <h3 className="text-lg font-medium text-gray-900">
+          Leaderboard Coming Soon
+        </h3>
+        <p className="text-gray-500 mt-2">
+          Stay tuned for the first event results!
+        </p>
       </div>
     );
   }
@@ -149,19 +160,27 @@ export default function LeaderboardTab() {
       {/* Filters (Clean) */}
       <div className="flex flex-col sm:flex-row gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
         <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-500 mb-1">Event</label>
-          <select 
-            value={selectedEventId} 
+          <label className="block text-xs font-medium text-gray-500 mb-1">
+            Event
+          </label>
+          <select
+            value={selectedEventId}
             onChange={(e) => setSelectedEventId(e.target.value)}
             className="w-full text-sm border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500"
           >
-            {events.map(e => <option key={e._id} value={e._id}>{e.title}</option>)}
+            {events.map((e) => (
+              <option key={e._id} value={e._id}>
+                {e.title}
+              </option>
+            ))}
           </select>
         </div>
         <div className="flex-1">
-          <label className="block text-xs font-medium text-gray-500 mb-1">Day</label>
-          <select 
-            value={selectedDayId} 
+          <label className="block text-xs font-medium text-gray-500 mb-1">
+            Day
+          </label>
+          <select
+            value={selectedDayId}
             onChange={(e) => setSelectedDayId(e.target.value)}
             disabled={!days.length}
             className="w-full text-sm border-gray-200 rounded-lg focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
@@ -169,7 +188,8 @@ export default function LeaderboardTab() {
             {days.length === 0 && <option>No days available</option>}
             {days.map((d, idx) => (
               <option key={d._id} value={d._id}>
-                Day {d.dayNumber || idx + 1} ({new Date(d.date).toLocaleDateString()})
+                Day {d.dayNumber || idx + 1} (
+                {new Date(d.date).toLocaleDateString()})
               </option>
             ))}
           </select>
@@ -189,13 +209,15 @@ export default function LeaderboardTab() {
             {highlights?.bestTime && (
               <StatCard
                 title="Best Time"
-                value={`${(highlights.bestTime.timeSeconds / 60).toFixed(2)} min`}
+                value={`${(highlights.bestTime.timeSeconds / 60).toFixed(
+                  2
+                )} min`}
                 subValue={highlights.bestTime.bullPair}
                 icon={Clock}
                 color="blue"
               />
             )}
-             {/* If winner is same as best distance, show something else or repeat? */}
+            {/* If winner is same as best distance, show something else or repeat? */}
             <StatCard
               title="Participants"
               value={leaderboard.length}
@@ -212,31 +234,42 @@ export default function LeaderboardTab() {
             </h3>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 5, right: 20, bottom: 40, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-                  <XAxis 
-                    dataKey="name" 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#6b7280', fontSize: 10 }}
+                <BarChart
+                  data={chartData}
+                  margin={{ top: 5, right: 20, bottom: 40, left: 0 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#f3f4f6"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#6b7280", fontSize: 10 }}
                     angle={-45}
                     textAnchor="end"
                     height={60}
                     interval={0}
                   />
-                  <YAxis 
-                    axisLine={false} 
-                    tickLine={false} 
-                    tick={{ fill: '#6b7280', fontSize: 12 }}
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#6b7280", fontSize: 12 }}
                   />
-                  <Tooltip 
-                    cursor={{ fill: '#f9fafb' }}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                  <Tooltip
+                    cursor={{ fill: "#f9fafb" }}
+                    contentStyle={{
+                      borderRadius: "8px",
+                      border: "none",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                    }}
                   />
-                  <Bar 
-                    dataKey="distance" 
-                    fill="#3b82f6" 
-                    radius={[4, 4, 0, 0]} 
+                  <Bar
+                    dataKey="distance"
+                    fill="#3b82f6"
+                    radius={[4, 4, 0, 0]}
                     name="Distance (m)"
                     maxBarSize={50}
                   />
@@ -256,30 +289,60 @@ export default function LeaderboardTab() {
                   return acc;
                 }, {})
               ).map(([category, entries]) => (
-                <div key={category} className="bg-white rounded-xl border border-gray-100 shadow-sm">
+                <div
+                  key={category}
+                  className="bg-white rounded-xl border border-gray-100 shadow-sm"
+                >
                   <div className="px-6 py-3 border-b bg-gray-50 text-sm font-semibold text-gray-700">
                     {category}
                   </div>
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-white">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BullPair</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Distance</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time (min)</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rock Weight</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Rank
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          BullPair
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Team
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Distance
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Time (min)
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Rock Weight
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {entries.map((entry, idx) => (
-                        <tr key={`${category}-${idx}`} className="hover:bg-gray-50 transition-colors">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">#{entry.rank || idx + 1}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{entry.bullPair}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{entry.team}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{entry.distanceMeters}m</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{((entry.timeSeconds || 0) / 60).toFixed(2)} min</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{entry.rockWeightKg}kg</td>
+                        <tr
+                          key={`${category}-${idx}`}
+                          className="hover:bg-gray-50 transition-colors"
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            #{entry.rank || idx + 1}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {entry.bullPair}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {entry.team}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                            {entry.distanceMeters}m
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {((entry.timeSeconds || 0) / 60).toFixed(2)} min
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {entry.rockWeightKg}kg
+                          </td>
                         </tr>
                       ))}
                     </tbody>

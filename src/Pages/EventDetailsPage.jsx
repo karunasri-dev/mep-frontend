@@ -21,6 +21,7 @@ import {
   Activity,
   ArrowLeft,
 } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function EventDetailsPage() {
   const routeParams = useParams();
@@ -267,7 +268,7 @@ function AdminControls({ entry, onUpdated, dayStatus }) {
         err?.message ||
         "Failed to start gameplay";
       setPerf((p) => p);
-      import("react-hot-toast").then(({ toast }) => toast.error(msg));
+      toast.error(msg);
     }
   };
   const complete = async () => {
@@ -294,7 +295,7 @@ function AdminControls({ entry, onUpdated, dayStatus }) {
         err?.response?.data?.message ||
         err?.message ||
         "Failed to complete gameplay";
-      import("react-hot-toast").then(({ toast }) => toast.error(msg));
+      toast.error(msg);
     }
   };
   const savePerformance = async () => {
@@ -311,10 +312,7 @@ function AdminControls({ entry, onUpdated, dayStatus }) {
       onUpdated(res.data.data);
     } catch (err) {
       const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to save performance";
-      import("react-hot-toast").then(({ toast }) => toast.error(msg));
+        err?.response?.data?.message || err?.message || toast.error(msg);
     }
   };
 
@@ -502,9 +500,7 @@ function AdminControls({ entry, onUpdated, dayStatus }) {
                           err?.response?.data?.message ||
                           err?.message ||
                           "Failed to save changes";
-                        import("react-hot-toast").then(({ toast }) =>
-                          toast.error(msg)
-                        );
+                        toast.error(msg);
                       }
                     }}
                     className="px-3 py-1 bg-stone-800 text-white rounded-lg text-xs hover:bg-stone-900"
@@ -555,7 +551,7 @@ function DayList({ days, selectedDayId, onSelect, isAdmin, onStatusChange }) {
                   err?.response?.data?.message ||
                   err?.message ||
                   "Failed to change day status";
-                import("react-hot-toast").then(({ toast }) => toast.error(msg));
+                toast.error(msg);
               }
             }}
             defaultValue=""
@@ -679,17 +675,14 @@ function DayBullPairsSection({
       // Refresh entries
       const res = await getDayBullPairsPublic(dayId);
       setEntries(res.data.data || []);
-      import("react-hot-toast").then(({ toast }) =>
-        toast.success(
-          isRecalc ? "Results recalculated!" : "Results calculated!"
-        )
-      );
+
+      toast.success(isRecalc ? "Results recalculated!" : "Results calculated!");
     } catch (err) {
       const msg =
         err?.response?.data?.message ||
         err?.message ||
         "Failed to calculate results";
-      import("react-hot-toast").then(({ toast }) => toast.error(msg));
+      toast.error(msg);
     }
   };
 
@@ -844,9 +837,8 @@ function DayBullPairsSection({
                       err?.response?.data?.message ||
                       err?.message ||
                       "Failed to add bullpairs";
-                    import("react-hot-toast").then(({ toast }) =>
-                      toast.error(msg)
-                    );
+
+                    toast.error(msg);
                   }
                 }}
                 className="px-4 py-2 bg-stone-800 text-white rounded-lg text-sm"
