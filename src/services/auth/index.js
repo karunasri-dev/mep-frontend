@@ -119,11 +119,11 @@ export const forgotPasswordAPI = (mobileNumber) => {
 };
 
 export const changePasswordAPI = (data) => {
-  return api.patch(`/api/auth/changePassword`, data);
+  return api.post(`/api/auth/changePassword`, data);
 };
 
-export const resetPasswordAPI = (token, password) => {
-  return api.patch(`/api/auth/resetPassword/${token}`, { password });
+export const resetPasswordAPI = (data) => {
+  return api.post(`/api/auth/resetPassword`, data);
 };
 // Forced logout (cross-tab safe)
 const forceLogout = () => {

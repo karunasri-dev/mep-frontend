@@ -114,7 +114,14 @@ function AppContent() {
 
   const location = useLocation();
 
-  const PUBLIC_PATHS = ["/", "/auth", "/login", "/register"];
+  const PUBLIC_PATHS = [
+    "/",
+    "/auth",
+    "/login",
+    "/register",
+    "/forgot-password",
+    "/reset-password",
+  ];
 
   const isPublic = PUBLIC_PATHS.includes(location.pathname);
   const isAdmin = location.pathname.startsWith("/admin");
@@ -134,7 +141,7 @@ function AppContent() {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/reset-password/:token" element={<ResetPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/unauthorized"
               element={<div>Unauthorized Access</div>}
